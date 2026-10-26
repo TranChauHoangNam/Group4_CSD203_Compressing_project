@@ -3,6 +3,8 @@ __pycache__/
 pytest-cache-files-*/
 .pytest_cache/
 data/
+.pair1-review-*/
 test_rq2.csv
 *.zip
+*.xls
 _unzip_tmp/

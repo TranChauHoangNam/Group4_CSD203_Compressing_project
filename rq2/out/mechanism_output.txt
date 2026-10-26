@@ -1,0 +1,24 @@
+[DO DUOC] Nguon ratio: results_rq2_all.csv
+Quy uoc: delta = CSV - du doan; KHOP neu abs(delta) < 0.05 (nguong doi chieu, khong phai kiem dinh).
+LZW: chi so byte bat dau tu 0; delta ratio = runs - original; khong phai du doan ratio.
+CSV: 45 dong; 28 cot; 3 file; 3 state; 3 codec; seeds = [1, 2, 3]
+Thiet lap tu log official.json (khong do lai): repeats = 3; lay trung vi thoi gian.
+Hang so dinh dang trong ma chi doc: Huffman header = 268 byte; LZW = 4096 muc; RLE header = 12 byte, count toi da = 255.
+
+== alice29.txt: 152089 byte, 74 gia tri byte khac nhau ==
+  sum(p^2) = 0.0687  ->  RLE ky vong khi xao tron ~ 2*(1-sum p^2) = 1.8626; CSV = 1.86267; delta = 8.60558e-05; KHOP
+  so run o du lieu goc = 144926  (RLE goc ~ 2*run/n = 1.9058, chua tinh tach run > 255); CSV = 1.90588; delta = 7.48464e-05; KHOP
+  LZW 'runs': tu dien KHONG day; CSV runs = 0.0326454; CSV original = 0.475577; delta ratio = -0.442932
+  LZW 'original': vi tri day = 10486; chi do thoi diem day, chua kiem chung nhan qua.
+
+== kennedy.xls: 1029744 byte, 256 gia tri byte khac nhau ==
+  sum(p^2) = 0.2369  ->  RLE ky vong khi xao tron ~ 2*(1-sum p^2) = 1.5262; CSV = 1.52551; delta = -0.000694301; KHOP
+  so run o du lieu goc = 865889  (RLE goc ~ 2*run/n = 1.6818, chua tinh tach run > 255); CSV = 1.68177; delta = 1.41461e-05; KHOP
+  LZW 'runs': tu dien day tai byte 887662 (86% du lieu); 14% du lieu sau do dung tu dien dong bang; CSV runs = 0.212572; CSV original = 0.407137; delta ratio = -0.194565
+  LZW 'original': vi tri day = 15628; chi do thoi diem day, chua kiem chung nhan qua.
+
+== v1_test_1mib.txt: 1048576 byte, 186 gia tri byte khac nhau ==
+  sum(p^2) = 0.0525  ->  RLE ky vong khi xao tron ~ 2*(1-sum p^2) = 1.8950; CSV = 1.89491; delta = -0.000134406; KHOP
+  so run o du lieu goc = 1042565  (RLE goc ~ 2*run/n = 1.9885, chua tinh tach run > 255); CSV = 1.98855; delta = 1.50726e-05; KHOP
+  LZW 'runs': tu dien day tai byte 319103 (30% du lieu); 70% du lieu sau do dung tu dien dong bang; CSV runs = 1.04457; CSV original = 0.492817; delta ratio = 0.551753
+  LZW 'original': vi tri day = 10777; chi do thoi diem day, chua kiem chung nhan qua.
