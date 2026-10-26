@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+pytest-cache-files-*/
+.pytest_cache/
+data/
+test_rq2.csv
+*.zip
+_unzip_tmp/
