@@ -1,0 +1,8 @@
+ĐẠT 1. Số dòng: 45/45
+ĐẠT 2. Header, schema và ma trận codec/state/seed
+ĐẠT 3. Round-trip true và output_check 16 hex
+ĐẠT 4. H0 không đổi, sai số < 1e-9
+ĐẠT 5. Huffman có cùng comp_bytes tuyệt đối
+ĐẠT 6. Huffman không thấp hơn mốc H0/8
+ĐẠT 7. RLE runs đúng công thức; original/shuffled không vượt giới hạn
+ĐẠT 8. Log runner hoàn tất, không bỏ qua file/codec

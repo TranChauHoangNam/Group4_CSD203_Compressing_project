@@ -1,0 +1,11 @@
+{
+  "command": "python -m rq2.run_rq2 --seeds 1 2 3 --repeats 3 --out results_rq2_all.csv --overwrite",
+  "seconds": 255.2758126999979,
+  "exit_code": 0,
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "repeats": 3
+}

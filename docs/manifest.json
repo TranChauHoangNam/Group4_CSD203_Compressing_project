@@ -1,0 +1,43 @@
+{
+  "source": "wikimedia/wikipedia 20231101",
+  "normalization": "NFC, UTF-8, bài viết nối bằng dòng trống",
+  "cut_rule": "cắt tại ranh giới ký tự UTF-8, kích thước <= danh nghĩa",
+  "files": {
+    "v1_train_1mib.txt": {
+      "bytes": 1048575,
+      "sha256": "61633cf2b34d99e4e1893dd84d36d3666feb23aeb618c9b7e2bedf5e3db641a3"
+    },
+    "v1_test_1mib.txt": {
+      "bytes": 1048576,
+      "sha256": "36eacd547e1b271dd7c297e4a800284bb494c371148202f16cf4cbac2388a708"
+    },
+    "v1_256kib.txt": {
+      "bytes": 262144,
+      "sha256": "29c5449b527bf3db45c60b6be169bd033338f3cce75908d7e8894acaddf0ae2c"
+    },
+    "v1_512kib.txt": {
+      "bytes": 524288,
+      "sha256": "b4c8a0fee0dcad0919982d5a710911a3a15a72ae5c1c13091abb8d62d4442edf"
+    },
+    "v1_1024kib.txt": {
+      "bytes": 1048575,
+      "sha256": "61633cf2b34d99e4e1893dd84d36d3666feb23aeb618c9b7e2bedf5e3db641a3"
+    },
+    "v1_2048kib.txt": {
+      "bytes": 2097152,
+      "sha256": "2551e152e485bcab62c69ce302ddda0426f9882d474f730d450cb227c02fc7ff"
+    },
+    "v1_4096kib.txt": {
+      "bytes": 4194303,
+      "sha256": "f21c71c51d8b673adebcac83891a689dcf6c4358c6e662c1a7eb524cde77fcc3"
+    },
+    "e1_train_1mib.txt": {
+      "bytes": 1048576,
+      "sha256": "bb8b4684207f9f2fba2f971d8597f3ed061b69872ec0711e6b0188f82bbae93a"
+    },
+    "e1_test_1mib.txt": {
+      "bytes": 1048576,
+      "sha256": "091eefa9d1603a2148a6a2c5813e822d499c95a5eaac09ed9e95c44ee0638031"
+    }
+  }
+}
