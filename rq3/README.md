@@ -1,92 +1,73 @@
-# RQ3 — khung BPE cho Cặp 3
+# RQ3 - Phase 2
 
-Chưa cài thuật toán BPE. Năm hàm trong `bpe.py` chỉ có chữ ký,
-docstring và `raise NotImplementedError`. Cấu trúc merges/tokens chưa chốt.
-`compress` khi cài đặt phải dùng `container.pack_header(b"BPE1", len(data))`.
-Biến thể: `inc`, `noheap`, `naive`; K thực nghiệm: 256, 1024, 3840.
+Implemented: naive, noheap and inc training over unique frequency-weighted
+segments, cached linked-list/heap encoding per segment, decode, compress,
+compress_with_merges and decompress. All three variants must pass the same
+round-trip and merge/token equivalence tests; there are no pending BPE xfails.
 
-## Test
+Mandatory pre-tokenization: `re.findall(rb" ?[^\s]+|\s+", data)`.
+Training and encoding never merge across segment boundaries. All overlapping
+adjacent positions are counted inside a segment; replacement is left-to-right,
+non-overlapping. Count ties use lexicographically smallest pair. Stop when the
+highest weighted count is less than two. See DESIGN.md D1-D8.
 
-Từ thư mục gốc chạy `python -m pytest -q`.
-Test BPE đánh dấu `xfail(reason="chưa cài BPE")`, chỉ chấp nhận
-`NotImplementedError`; lỗi khác vẫn làm test thất bại. Gồm bytes rỗng,
-`A`, `ABABABA`, ví dụ `aaabdaaabac` với K=3 và file ngắn tạo trong tmp_path.
-K=3 gọi trực tiếp train/encode/decode, không ghi CSV.
+## Fixed 12-bit format
 
-Việc cần làm sau: cần cho phép k_merges=3 khi rq == edge trong common/results_schema.py.
-Scaffold này chưa nới quy tắc K của schema.
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 4 | BPE1 |
+| 4 | 8 | original length, big-endian |
+| 12 | 2 | K field stores actual merge count m |
+| 14 | 3*m | merge table: two 12-bit ids per entry, MSB-first |
+| 14+3*m | 8 | token count, big-endian |
+| 22+3*m | ceil(12*n_tokens/8) | 12-bit tokens, MSB-first, zero-padded |
 
-## CSV chung
+Fixed overhead: 22 bytes. ratio includes all bytes; ratio_tokens_only includes
+only payload bytes. bytes_per_token = orig_bytes/n_tokens. Undefined ratios
+for empty data stay blank. D7 retains exactly the required merges/tokens and
+now occupies 39 bytes: 14 + 9 + 8 + 8. Empty input occupies 22 bytes.
+The previous variable-width experimental format is superseded.
 
-Mã BPE chỉ dùng `common.results_schema`, không import schema trong `tools/`.
-Ghi bằng `from common.results_schema import append_row, sha16`, rồi
-`append_row(path, row)` sau khi kiểm tra round-trip. Thư mục cha của CSV
-phải tồn tại trước khi gọi.
+## Tests and remaining work
 
-Đặt `rq="3"`, `codec="bpe"`, dataset hợp lệ, `state="original"`, tên `file`,
-`orig_bytes`, `comp_bytes`, `output_check=sha16(decoded)` và `roundtrip_ok=True`.
-Các cột RQ3 phải được điền theo phép đo:
-
-| Cột | Nội dung |
-| --- | --- |
-| train_variant | inc / noheap / naive |
-| k_merges | 256 / 1024 / 3840 |
-| train_corpus | Corpus dùng huấn luyện, ví dụ V1 hoặc E1 |
-| test_corpus | Corpus dùng đánh giá, ví dụ V1 hoặc E1 |
-| ratio | comp_bytes / orig_bytes; cần chốt phần bảng merge bên dưới |
-| ratio_tokens_only | Số byte phần tokens / orig_bytes, loại bảng merge và header |
-| n_tokens | Số token sau encode |
-| bytes_per_token | orig_bytes / n_tokens (schema có thể tự tính) |
-| train_ms | Thời gian huấn luyện tính bằng ms |
-
-Không chia cho 0 với dữ liệu rỗng; để trống các tỷ lệ không xác định.
-`dataset` chỉ được trống/None/không có khi `rq="edge"`.
-
-Câu hỏi còn mở: cách tính kích thước bảng merge cho `ratio` là gì?
-Cần chốt định dạng tuần tự hóa và chi phí bảng merge khi dùng chung giữa
-train/test trước khi báo cáo số liệu; scaffold chưa quyết định thay nhóm.
-
-## Bản Cặp 1 và bất tương thích
-
-Nguồn: `.pair1-review-fsd1o4mc/pair1_ready/`. Bốn file Python trong `tools/`
-được copy nguyên văn; không đổi import. `requirements-wiki.txt` được tạo lại
-từ import ngoài thư viện chuẩn (`datasets`), không ghim phiên bản.
-
-- `tools/run_edge.py:10,26` import và khởi tạo `CsvWriter`.
-- Trong nguồn, `run_rq1.py:17,50` và `test_pair1.py:14,145` cũng dùng
-  `CsvWriter`; hai file này không được copy.
-- `tools/results_schema.py:74` định nghĩa `CsvWriter`; dòng 53 định dạng
-  float bằng `.6f` (6 chữ số sau dấu thập phân).
-- `common/results_schema.py` dùng `append_row`, tự điền các cột dẫn xuất,
-  và `.6g` (6 chữ số có nghĩa). Hai API không thay thế trực tiếp cho nhau.
-- Schema Cặp 1 cho dataset trống với mọi rq và state trống; schema chung
-  chỉ cho dataset trống với edge, không cho state trống. Cặp 1 không kiểm
-  tra tập K/size như schema chung, và yêu cầu roundtrip_ok là bool True.
-- CsvWriter tạo thư mục cha, kiểm tra header CSV hiện có; append_row không
-  làm hai việc này. Không trộn hai writer mà chưa thống nhất hợp đồng.
-
-`run_edge.py` dùng import cục bộ `measure`/`results_schema`; `measure.py`
-còn import `container` ở gốc repo. Khi chạy script trực tiếp cần đưa gốc
-repo vào PYTHONPATH (PowerShell, từ gốc):
+From the repository root in PowerShell:
 
 ```powershell
-$env:PYTHONPATH = (Get-Location).Path
-python tools/run_edge.py --codecs rle lzw
+$env:PYTHONIOENCODING = "utf-8"
+python -m pytest -q
 ```
 
-Module `huffman.py` ở gốc hiện chuyển tiếp `compress`/`decompress` sang
-`rq2.huffman`; run_edge có thể chạy cả rle, huffman và lzw.
+encode_reference is a test-only per-segment sequential oracle. Tests also compare
+weighted unique training to an independent per-occurrence recount. There is no
+public raw-text training mode. API K accepts integers 0..3840 for small tests;
+CSV limits remain 256/1024/3840, with 3 allowed only for rq=edge.
+Phase 2 equivalence is covered by 200 random segmented inputs, edge cases and
+64 KiB prefixes of V1/E1 train at K=256. The corpus tests require the verified
+data files; they fail rather than silently skip when data are missing.
+No Phase 3 benchmark or RQ3 result CSV has been produced.
 
-## Tái tạo Wikipedia
+Future RQ3 CSV writers must use common.results_schema.append_row with rq=3,
+codec=bpe and train_variant/k_merges/train_corpus/test_corpus/ratio/
+ratio_tokens_only/n_tokens/bytes_per_token/train_ms plus shared measurement
+and round-trip fields. Do not use tools.results_schema.CsvWriter (.6f);
+the shared schema uses append_row (.6g). Pair 1 copies are unchanged.
 
-`docs/manifest.json` là manifest nguyên văn từ nguồn, chứa phiên bản và hash.
-Không copy các file văn bản dữ liệu. Từ thư mục gốc:
+Wikipedia data remain ignored in data/wiki and are checked against
+SHA-256/sizes in docs/manifest.json. Recreate with tools/prepare_wiki.py
+and its requirements-wiki.txt dependencies, then verify the manifest.
 
-```powershell
-python -m pip install -r tools/requirements-wiki.txt
-python tools/prepare_wiki.py --data-dir data/wiki
-```
 
-Pipeline dùng wikimedia/wikipedia 20231101, chuẩn hóa NFC/UTF-8 và cắt tại
-ranh giới ký tự. Đối chiếu hash và số byte trong manifest sau khi tạo lại.
-Chưa tải dữ liệu hoặc cài dependency trong tác vụ dựng khung này.
+## Training variants
+
+- naive: recount all pairs in all unique segments on every iteration.
+- noheap: linked lists, pair-position and pair-to-segments indexes, weighted
+  incremental edge updates; select a pair by scanning the count dictionary.
+- inc: the same incremental state, but select using a lazy heap (-count, a, b).
+
+All selections share the lexicographic tie-break rule. Both incremental variants
+remove old adjacent edges before replacement and add new edges afterward,
+including overlapping occurrences in their counts. See DESIGN.md for details.
+
+Hardening tests cover K field >3840, self/future/out-of-range merge references,
+payload length versus the 64-bit count, decoded length in both directions,
+every truncated D7 prefix, invalid magic and nonzero padding.

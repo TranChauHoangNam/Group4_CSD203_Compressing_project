@@ -68,7 +68,9 @@ def validate_row(row: Mapping[str, Any]) -> None:
         raise ValueError(f"train_variant={tv!r} không hợp lệ")
     if row.get("size_kib") not in (None, "") and int(row["size_kib"]) not in SIZES_KIB:
         raise ValueError(f"size_kib={row['size_kib']!r} không hợp lệ")
-    if row.get("k_merges") not in (None, "") and int(row["k_merges"]) not in K_VALUES:
+    if (row.get("k_merges") not in (None, "")
+            and int(row["k_merges"]) not in K_VALUES
+            and not (row.get("rq") == "edge" and int(row["k_merges"]) == 3)):
         raise ValueError(f"k_merges={row['k_merges']!r} không hợp lệ")
     chk = row.get("output_check")
     if not isinstance(chk, str) or len(chk) != 16 or any(c not in "0123456789abcdef" for c in chk):
