@@ -129,11 +129,12 @@ The runner resumes by skipping existing `(file, codec)` keys; it does not remeas
 
 ### RQ1 analysis
 
-Run the analysis from the repository root; it reads the recorded CSV without modifying it:
+Run the analysis and report verification from the repository root; they read the recorded CSV without modifying it:
 
 ```powershell
 python -m rq1.analyze_rq1
 python -m rq1.analyze_rq1 --check
+python -m rq1.verify_rq1_report
 ```
 
 Outputs in `rq1/out/`: `rq1_ratio.csv`/`.md`, `rq1_throughput.csv`/`.md`,
@@ -142,6 +143,8 @@ Tables report seed medians/minima/maxima with source CSV line numbers; V1 has on
 All figures use consistent codec colors, markers and line styles. Shading retains the min-max range,
 including the three timing-flagged rows. `--check` regenerates into system temp, compares table
 content and checks that the three PNGs are present and nonempty.
+`python -m rq1.verify_rq1_report` verifies that 100% of the numeric table cells in `rq1/RQ1_report_draft.md`
+match `rq1/out/*.csv` and `results/results_rq1.csv`.
 
 ### RQ2: byte-order sensitivity
 
@@ -235,8 +238,8 @@ where the header is line 1; the original test files each contain 1048576 bytes.
 | LZW | V1 test | - | 0.492817 | 38 |
 | LZW | E1 test | - | 0.538014 | 39 |
 
-Tables and figures: [rq2/out/](rq2/out/) and [rq3/out/](rq3/out/).
-Draft reports: [RQ2](rq2/RQ2_report_draft.md) and [RQ3](rq3/RQ3_report_draft.md).
+Tables and figures: [rq1/out/](rq1/out/), [rq2/out/](rq2/out/) and [rq3/out/](rq3/out/).
+Draft reports: [RQ1](rq1/RQ1_report_draft.md), [RQ2](rq2/RQ2_report_draft.md) and [RQ3](rq3/RQ3_report_draft.md).
 These results describe the measured corpora; the V1/E1 corpora are non-parallel, so cross-language comparisons are correlational.
 
 ## Responsibilities and known limitations
