@@ -9,6 +9,7 @@ RQ3 compares BPE training variants and same-language versus cross-language compr
 
 ```text
 common/           Shared CSV schema and validation tests
+rq1/              RQ1 seed summaries, analysis tests and figures
 rq2/              Huffman, entropy, byte reordering, RQ2 runner, tests and report
 rq3/              BPE variants, RQ3 runner, tests, analysis and report
 tools/           Pair 1 measurement, edge-case and Wikipedia preparation tools
@@ -65,7 +66,11 @@ In particular, `kennedy.xls`, corpus text files and downloaded archives are not 
   Download regeneration is not verified here and requires `datasets`; the script also accepts local `--vi-file` and `--en-file` inputs.
   Arbitrary local texts will not reproduce the recorded manifest.
 - RQ2 also requires a byte-identical copy of `data/wiki/v1_test_1mib.txt` at `data/v1_test_1mib.txt`.
-  RQ3 reads its four corpus files from `data/wiki/`; its corpus tests require these files.
+  RQ3 reads its four corpus files from `data/wiki/`; corpus equivalence tests skip when their inputs are absent.
+
+Corpus-dependent pytest cases skip missing inputs; when inputs exist, size and SHA-256 assertions still run.
+The RQ2/RQ3 check scripts print `Missing data file` / `CHƯA KIỂM` and exit 2 when data are unavailable; actual check failures exit 1.
+Restore the inputs above for complete validation (exit 0); other checks continue where supported.
 
 [docs/manifest.json](docs/manifest.json) contains expected byte sizes and full SHA-256 hashes for **wiki files only**.
 The two Canterbury files are not entries in that manifest. Reference values checked locally:
@@ -122,6 +127,22 @@ python run_rq1.py --data-dir data --out results/results_rq1.csv --codecs rle huf
 Uses C1/C2/C3 and V1 size prefixes; the recorded matrix has 150 rows (50 per codec).
 The runner resumes by skipping existing `(file, codec)` keys; it does not remeasure these rows.
 
+### RQ1 analysis
+
+Run the analysis from the repository root; it reads the recorded CSV without modifying it:
+
+```powershell
+python -m rq1.analyze_rq1
+python -m rq1.analyze_rq1 --check
+```
+
+Outputs in `rq1/out/`: `rq1_ratio.csv`/`.md`, `rq1_throughput.csv`/`.md`,
+`rq1_memory.csv`/`.md`, and `rq1_ratio.png`, `rq1_throughput.png`, `rq1_memory.png`.
+Tables report seed medians/minima/maxima with source CSV line numbers; V1 has one sample.
+All figures use consistent codec colors, markers and line styles. Shading retains the min-max range,
+including the three timing-flagged rows. `--check` regenerates into system temp, compares table
+content and checks that the three PNGs are present and nonempty.
+
 ### RQ2: byte-order sensitivity
 
 ```powershell
@@ -168,7 +189,7 @@ and selected an external temporary directory; bytecode was disabled with the env
 python -m pytest -q -p no:cacheprovider --basetemp <new-directory-in-system-temp>
 ```
 
-Replace the placeholder with a fresh path outside the repository. The latest run passed **720 tests**.
+Replace the placeholder with a fresh path outside the repository. The current suite passed **733 tests** with corpus inputs; a temporary source copy without `data/` passed **731 tests with 2 skipped**.
 The repository's pytest configuration also disables the cache provider. Do not reuse a valuable directory as pytest's base temp.
 
 These exact check commands were executed:
@@ -184,10 +205,9 @@ python -m rq3.analyze_rq3 --check
 
 Observed status: RQ2 checks passed 9/9; mechanism inspection processed all three inputs;
 report verification matched 119 trace rows and three tables; edge schema validation passed 33/33;
-RQ3 analysis reproduced 15 artifacts exactly. **RQ3 result checking currently passes 6/7**:
-the byte-preservation check for the original edge CSV prefix fails in this checkout.
-Its audited prefix hash matches after CRLF-to-LF normalization, but not the raw on-disk bytes.
-No CSV or checker was altered to hide this failure.
+RQ3 analysis reproduced 15 artifacts exactly. With all required data present, RQ3 result checking
+includes seven checks, including preservation of the original edge CSV bytes. Missing corpus data
+are reported as unchecked with exit 2; validation criteria and the recorded CSVs are unchanged.
 
 ## Binary containers and CSV
 
@@ -227,11 +247,17 @@ These results describe the measured corpora; the V1/E1 corpora are non-parallel,
 | Pair 2 | rq2/: canonical Huffman, entropy, reordering, RQ2 tests and report; root Huffman shim |
 | Pair 3 | rq3/: naive/noheap/inc BPE, RQ3 experiments, tests, analysis and report |
 
-- RQ1 timing measurements were collected on two machines, as reported by the team; the handoff also warns about mixed machines/times.
-  Do not interpret their speed ranking as a controlled single-machine comparison. See [handoff](docs/PAIR12_HANDOFF.md).
+- The current `results/results_rq1.csv` contains the 150-row same-machine resample (50 rows per codec), replacing the earlier mixed-machine measurements.
+  The owner reports an Intel Core i7-13650HX, 24 GB RAM, Windows 11 and Python 3.13.2; total wall time was 1160.0407191 seconds.
+  Progress was checked by reading the output file several times, so light timing interference is possible but unquantified.
+  Six timing cells across three rows exceeded 1.3 times their three-seed group median and remain in the data; this screening does not prove noise.
+  Same-machine collection does not eliminate load or thermal effects. See [handoff](docs/PAIR12_HANDOFF.md).
 - BPE D1-D8 is the design record for group review. D1-D4 and D6-D7 retain proposal labels pending group confirmation;
   D5 (fixed format) and D8 (segmentation) are mandatory specification requirements, not optional proposals.
 - naive higher-K rows use shorter training inputs and cannot establish pure variant speedups against full-data inc/noheap rows.
-- The raw-byte edge-prefix check currently fails on this checkout's line endings, as documented above.
 - Data and archives must be obtained separately; Git does not supply `data/` or `kennedy.xls`.
 - Installation, corpus acquisition and full experiment regeneration were not rerun for this README; their commands are explicitly marked unverified.
+
+## Documentation
+
+Project-owner decisions, implementation checks and RQ1 provenance: [DECISIONS.md](docs/DECISIONS.md).
