@@ -51,11 +51,26 @@ Năm file V1 RQ1 được copy vào `data/wiki/` từ nguồn, không đưa vào
 Đối chiếu dữ liệu V1 với `docs/manifest.json`; pipeline tái tạo ở trên.
 V1 được cắt ở ranh giới UTF-8 nên có thể nhỏ hơn kích thước danh nghĩa.
 
-100 dòng RLE/LZW lấy từ `pair1_ready/results/results_rq1.csv` được giữ lại;
-đã kiểm tra kích thước, sha16, roundtrip và khóa duy nhất trước khi chạy tiếp.
-Không dùng CSV trong `provided_results/`. 50 dòng Huffman được đo bổ sung.
-Các dòng cũ và mới có thể đến từ máy/thời điểm đo khác nhau; cần một lượt
-đo lại toàn bộ trên cùng máy nếu dùng tốc độ để so sánh ba codec công bằng.
+## Current RQ1 measurement provenance
+
+`results/results_rq1.csv` now contains the complete same-machine resample:
+150 rows, 50 each for RLE, Huffman and LZW. It replaces the earlier dataset
+that retained 100 Pair 1 RLE/LZW rows and added 50 Pair 2 Huffman rows from
+a different machine. That mixed-machine limitation describes the superseded
+measurements, not the current primary RQ1 CSV.
+
+The owner reports Intel Core i7-13650HX, 24 GB RAM, Windows 11, Python 3.13.2,
+and total wall time of 1160.0407191 seconds. The resample validation found no
+duplicate keys, all round trips true, all rows schema-valid, and identical
+comp_bytes/output_check for all 150 keys compared with the superseded CSV.
+
+Limitations: the owner read the output file several times to check progress,
+which may have introduced light interference; its impact has not been measured.
+Six timing cells in three rows exceeded 1.3 times their corresponding three-seed
+group median: compression and decompression for C1_4194304_s3.bin/Huffman,
+C1_4194304_s3.bin/LZW and C2_1048576_s1.bin/RLE. All rows are retained.
+Different seeds contain different inputs, so these flags do not establish noise.
+Same-machine collection does not remove load, thermal or execution-order effects.
 
 ## Schema và test
 
@@ -70,6 +85,11 @@ test monkeypatch hiện có kiểm tra hành vi này.
 
 `data/`, `*.xls`, `*.zip`, `.pair1-review-*/` được bỏ qua bởi `.gitignore`.
 Không tạo nhánh, stage, commit hay push trong tác vụ này.
+
+## Historical handoff checks (before the RQ1 resample and completed BPE)
+
+The following is the original handoff record, not a description of the current
+CSV provenance, edge-row count or current test suite.
 
 ## Kết quả kiểm tra ngày 2026-10-27
 
