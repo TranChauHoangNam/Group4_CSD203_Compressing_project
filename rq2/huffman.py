@@ -93,6 +93,8 @@ def generate_canonical_codes(lengths: list[int]) -> dict[int, str]:
         # Dịch trái khi độ dài mã tăng lên
         current_code <<= (length - current_length)
         current_length = length
+        if current_code >= (1 << length):
+            raise ValueError("Oversubscribed Huffman code lengths")
         
         # Biểu diễn mã dưới dạng chuỗi bit (ví dụ: '0101')
         codes[symbol] = format(current_code, f'0{length}b')
@@ -141,6 +143,8 @@ def huffman_decompress(compressed_data: bytes) -> bytes:
 
     original_length = int.from_bytes(compressed_data[4:12], 'big')
     if original_length == 0:
+        if len(compressed_data) != HEADER_SIZE or any(compressed_data[12:268]):
+            raise ValueError("Nonempty table or payload for empty Huffman stream")
         return b''
 
     code_lengths_bytes = compressed_data[12:268]
@@ -161,12 +165,15 @@ def huffman_decompress(compressed_data: bytes) -> bytes:
     decoded_bytes = bytearray()
     current_bits = ""
     
-    for bit in bit_string:
+    for position, bit in enumerate(bit_string):
         current_bits += bit
         if current_bits in decode_map:
             decoded_bytes.append(decode_map[current_bits])
             current_bits = ""
             if len(decoded_bytes) == original_length:
+                remaining = len(bit_string) - position - 1
+                if remaining > 7 or '1' in bit_string[position + 1:]:
+                    raise ValueError("Extra Huffman payload or nonzero padding")
                 break
 
     if len(decoded_bytes) != original_length:

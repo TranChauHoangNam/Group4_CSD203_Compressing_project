@@ -1,4 +1,4 @@
-"""Validate the approved mixed-scope RQ3 matrix and its measurement audit."""
+"""Validate the full-corpus RQ3 matrix and its measurement audit."""
 import argparse
 import csv
 import hashlib
@@ -70,7 +70,7 @@ def check_rows(rows,audit,manifest):
                 assert all(r[c]=='' for c in ('train_variant','k_merges','train_corpus','train_ms'))
                 continue
             v,k=r['train_variant'],int(r['k_merges']);notes=parse_notes(r['notes'])
-            prefix=128 if v=='naive' and k>256 else 0
+            prefix=0
             runs=1 if v=='naive' else 3
             assert int(notes['train_prefix_kib'])==prefix
             assert int(notes['train_runs'])==runs
@@ -83,6 +83,7 @@ def check_rows(rows,audit,manifest):
             assert math.isclose(float(r['train_ms']),median(model['train_ms_runs']),rel_tol=5.1e-6)
             for field in ('train_sha256','merges_sha256'):
                 assert notes[field]==model[field]
+            assert notes['train_sha256']==manifest[f"{r['train_corpus'].lower()}_train_1mib.txt"]['sha256']
             observed=audit['rows'][key(r)]
             assert observed['output_sha256']==manifest[r['file']]['sha256']
         for r in rows:
@@ -103,8 +104,10 @@ def check_rows(rows,audit,manifest):
             assert len({parse_notes(r['notes'])['merges_sha256'] for r in items})==1
         for a in CORPORA:
             for b in CORPORA:
-                items=[r for r in rows if r['codec']=='bpe' and r['train_corpus']==a and r['test_corpus']==b and r['k_merges']=='256']
-                assert len({parse_notes(r['notes'])['train_sha256'] for r in items})==1
+                for k in KS:
+                    items=[r for r in rows if r['codec']=='bpe' and r['train_corpus']==a and r['test_corpus']==b and r['k_merges']==str(k)]
+                    assert len(items)==3
+                    assert len({parse_notes(r['notes'])['train_sha256'] for r in items})==1
     check("Variant equivalence only for identical training inputs",equivalence)
     return checks
 

@@ -35,7 +35,7 @@ The optional `datasets` package is needed for Wikipedia downloads and is **not i
 Installation commands below are **not verified in this documentation update**; no packages were installed or upgraded:
 
 ```powershell
-python -m pip install pytest matplotlib
+python -m pip install pytest matplotlib python-docx
 python -m pip install -r tools/requirements-wiki.txt
 ```
 
@@ -167,11 +167,17 @@ python -m rq3.run_rq3 train-memory
 Outputs: `results/results_rq3.csv`, `rq3/out/rq3_run_audit.json`, and `rq3/out/train_mem.csv`.
 The results stage resumes audited models and existing rows; training-memory refuses to overwrite an existing output.
 The 38-row matrix contains 36 BPE rows and two LZW baselines.
-inc/noheap use full V1/E1 train files at K=256/1024/3840, with median-of-three training times.
-naive uses full training only at K=256; K=1024/3840 use 128 KiB prefixes, with one training run.
-All test inputs are full files. Compression/decompression times are medians of three runs.
-Compression/decompression peak memory excludes training; a separate training-memory pass uses 128 KiB, K=256.
-See [the approved plan](rq3/README.md) for preflight, scope and resume details. No full naive K=3840 run is included.
+All three variants use full V1/E1 train files at K=256/1024/3840.
+inc/noheap report median-of-three training times; naive reports one measured run.
+Four high-K naive timings were imported from the verified full-corpus supplement;
+the eight associated test rows were measured again. Source hashes and merge lists
+are validated before reuse. The prior mixed-scope CSV/audit/edge records are kept
+in `results/archive/mixed_scope/` as historical evidence, not primary results.
+All test inputs are full files. Compression/decompression times are medians of three.
+Memory is measured separately; training-memory uses 128 KiB, K=256, and is labelled.
+For a historical checkout, `python -m rq3.upgrade_full` validates and imports the
+supplement once; `python -m rq3.run_rq3 results` then completes the eight missing rows.
+The normal runner always trains on full inputs and refuses stale prefix models.
 
 ### Edge cases
 
@@ -192,7 +198,7 @@ and selected an external temporary directory; bytecode was disabled with the env
 python -m pytest -q -p no:cacheprovider --basetemp <new-directory-in-system-temp>
 ```
 
-Replace the placeholder with a fresh path outside the repository. The current suite passed **733 tests** with corpus inputs; a temporary source copy without `data/` passed **731 tests with 2 skipped**.
+Replace the placeholder with a fresh path outside the repository. The updated suite and independent checks are recorded in [validation_report.md](final_submission/validation_report.md). Historical test counts are not the current acceptance result.
 The repository's pytest configuration also disables the cache provider. Do not reuse a valuable directory as pytest's base temp.
 
 These exact check commands were executed:
@@ -255,12 +261,24 @@ These results describe the measured corpora; the V1/E1 corpora are non-parallel,
   Progress was checked by reading the output file several times, so light timing interference is possible but unquantified.
   Six timing cells across three rows exceeded 1.3 times their three-seed group median and remain in the data; this screening does not prove noise.
   Same-machine collection does not eliminate load or thermal effects. See [handoff](docs/PAIR12_HANDOFF.md).
-- BPE D1-D8 is the design record for group review. D1-D4 and D6-D7 retain proposal labels pending group confirmation;
-  D5 (fixed format) and D8 (segmentation) are mandatory specification requirements, not optional proposals.
-- naive higher-K rows use shorter training inputs and cannot establish pure variant speedups against full-data inc/noheap rows.
+- BPE trains until K merges or no within-segment adjacent pairs remain, including singleton pairs.
+- All primary RQ3 rows now use the same full training input for a given corpus/K.
+  Naive timings have one repetition; no confidence interval is claimed.
 - Data and archives must be obtained separately; Git does not supply `data/` or `kennedy.xls`.
 - Installation, corpus acquisition and full experiment regeneration were not rerun for this README; their commands are explicitly marked unverified.
 
 ## Documentation
 
 Project-owner decisions, implementation checks and RQ1 provenance: [DECISIONS.md](docs/DECISIONS.md).
+
+## Revised submission
+
+The current report is [CSD203_DA4_Report_Revised.docx](final_submission/CSD203_DA4_Report_Revised.docx),
+with reproducible Markdown and HTML siblings. Build with
+`python -m final_submission.generate_report` then `python -m final_submission.build_submission`.
+Verify the report with `python -m final_submission.generate_report --check` and
+`python -m final_submission.validate_submission`; DOCX export requires python-docx.
+The superseded `CSD203_DA4_IEEE_Final.*` report files have been removed.
+RQ1/RQ2 timing CSVs are historical measurements; decoder validation was hardened
+after collection, so they are not presented as fresh timing measurements of the revised code.
+The RQ1 measurement function now validates SHA-256 in its separate memory pass too.

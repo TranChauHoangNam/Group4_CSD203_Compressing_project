@@ -1,4 +1,4 @@
-"""Approved Phase 4 RQ3 matrix. Timings and traced memory are separate passes."""
+"""Full-corpus RQ3 matrix. Timings and traced memory are separate passes."""
 import argparse
 import csv
 import hashlib
@@ -105,6 +105,12 @@ def train_estimate(corpus,variant,k,prefix):
     rows=[r for r in json.loads(source.read_text())["cells"] if r["variant"]==variant and r["raw_bytes"]<=131072]
     last=next(r for r in rows if r["raw_bytes"]==131072 and r["k"]==256)
     if variant=="naive":
+        supplement=ROOT/'final_submission/naive_full_experiment.json'
+        if not prefix and supplement.exists():
+            cells=json.loads(supplement.read_text())["cells"]
+            match=next((c for c in cells if c['corpus']==corpus and c['k']==k),None)
+            if match is not None:
+                return match['train_ms']/1000*1.25
         if prefix:
             return last["train_ms"]/1000*(k/256)*2
         if corpus=="E1":
@@ -124,14 +130,13 @@ def train_estimate(corpus,variant,k,prefix):
 
 def trained_model(audit,corpus,k,variant):
     name=f"{corpus}|{k}|{variant}"
-    if name in audit["models"]:
-        return audit["models"][name]
-    prefix=128 if variant=="naive" and k>256 else 0
     data=load_corpus(corpus,"train")
-    if prefix:
-        data=data[:prefix*1024]
-    if variant=="naive" and k>256 and not prefix:
-        raise ValueError("Unapproved full naive run")
+    if name in audit["models"]:
+        model=audit["models"][name]
+        if model['train_prefix_kib'] or model['train_sha256']!=digest(data):
+            raise ValueError("Stale/prefix model: run python -m rq3.upgrade_full first")
+        return model
+    prefix=0
     guard(f"train {name} prefix={prefix}",train_estimate(corpus,variant,k,prefix))
     runs=1 if variant=="naive" else 3
     samples=[]; merges=None
@@ -247,11 +252,12 @@ def main():
     preflight=json.loads((OUT/"phase4_preflight.json").read_text())
     if not preflight["safe_to_start_naive_full_k256"]: raise SystemExit("STOP: preflight bound >300s")
     audit=json.loads(AUDIT.read_text()) if AUDIT.exists() else dict(protected_before=protected_hashes(),models={},rows={})
-    if audit["protected_before"]!=protected_hashes(): raise ValueError("Protected files changed")
+    before=protected_hashes()
+    audit.setdefault('execution_sources',[]).append(dict(stage=args.stage,sha256=before))
     if args.stage=="results": run_results(audit)
     elif args.stage=="edge": run_edges(audit)
     elif args.stage=="train-memory": train_memory(audit)
-    assert audit["protected_before"]==protected_hashes()
+    assert before==protected_hashes(), "Source files changed during measurement"
     save(audit)
     print("Protected hashes: unchanged",flush=True)
 

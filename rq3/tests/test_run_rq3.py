@@ -16,10 +16,10 @@ def fixture_matrix():
     for variant in VARIANTS:
         for a in CORPORA:
             for k in KS:
-                prefix=128 if variant=='naive' and k>256 else 0
+                prefix=0
                 runs=1 if variant=='naive' else 3
                 notes=dict(train_prefix_kib=prefix,train_runs=runs,train_stat='single' if runs==1 else 'median3',
-                           train_bytes=131072 if prefix else 8,train_sha256=f'{a}-{prefix}',merges_sha256=f'{a}-{k}-{prefix}',
+                           train_bytes=131072 if prefix else 8,train_sha256=digest,merges_sha256=f'{a}-{k}-{prefix}',
                            m_actual=3,payload_bytes=6,mem_scope='compress_decompress_pretrained',mem_test_bytes=8,mem_training_included='false')
                 audit['models'][f'{a}|{k}|{variant}']=dict(train_ms_runs=[5] if runs==1 else [4,5,6],train_sha256=notes['train_sha256'],merges_sha256=notes['merges_sha256'])
                 for b in CORPORA:
@@ -53,7 +53,7 @@ def test_checker_rejects_duplicate_or_missing_cell():
 def test_checker_rejects_unapproved_naive_training_scope():
     rows,audit,manifest=fixture_matrix()
     target=next(r for r in rows if r['train_variant']=='naive' and r['k_merges']=='3840')
-    target['notes']=target['notes'].replace('train_prefix_kib=128','train_prefix_kib=0')
+    target['notes']=target['notes'].replace('train_prefix_kib=0','train_prefix_kib=128')
     assert not all(ok for _,ok,_ in check_rows(rows,audit,manifest))
 
 

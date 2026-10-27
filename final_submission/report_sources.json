@@ -1,0 +1,13 @@
+{
+  "results/results_rq1.csv": "ddee6e97002640090e185b895f1b62684e5abd976defcadd6437e0748f335a4b",
+  "results_rq2_all.csv": "1c4dcb9dc620f36846f4f3d3b82de4e8ee22d27b250e6ac8c4d794a67f98c0f2",
+  "results/results_rq3.csv": "89bd507eef3e7a9e2733fe2a5564ebca8b454fb2f9be2e9e06ac50649d545c1c",
+  "rq3/out/rq3_run_audit.json": "93d3236f599888746424669de67760db8da623b908f27d8747d7acc36380b040",
+  "rq3/out/train_mem.csv": "f8454a71ee04b32ce076826400ad9b2c6a9853c1fdad78b3d8b579612a52cc55",
+  "docs/manifest.json": "3d04311c7345c2cc26d2ad89d74ab3b4f54dd8d06bcd4aa539d80987ae6a45d4",
+  "final_submission/naive_full_experiment.json": "736bb0db8e022dc7ef192e6942b4805ef183623848b65364af56d8c46acfdbd6",
+  "final_submission/team.json": "2e0d89df0b8de1e8389dc8bf4c3ae352bf69e6b4510923e23932b90c3ecd0939",
+  "rq1/out/rq1_ratio.csv": "d207d0272926b9f6f2fbd9a80b4c55593f683c2ded239bcd01aa25bbd3b1a67a",
+  "rq1/out/rq1_throughput.csv": "8ff4b9d88a6f70c72fe180e6545e2f25c0bf685b4ed20b48e2f01b3aa6991b08",
+  "rq1/out/rq1_memory.csv": "9a3f7ca5267bc74f45b264e0ca1405d6eb1c4b244e070053f62be900b538e051"
+}

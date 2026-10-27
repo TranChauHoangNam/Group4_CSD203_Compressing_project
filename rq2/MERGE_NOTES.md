@@ -1,3 +1,5 @@
+> Hồ sơ lịch sử của lần merge ban đầu. Các mô tả decoder chấp nhận padding/bảng mã sai bên dưới đã được thay thế trong đợt sửa 2026-10-27; xem README hiện tại và các regression test. Không dùng các giới hạn lịch sử này làm đặc tả hiện hành.
+
 ## 1. Files thêm mới (đường dẫn + lý do)
 
 - `.gitignore`: bỏ qua `__pycache__/`, `*.pyc`, `pytest-cache-files-*/`, `.pytest_cache/`.

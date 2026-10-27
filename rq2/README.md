@@ -54,7 +54,7 @@ Lượt 1 dùng cách dựng cây `heapq` của partner; khi cùng tần suất,
 
 Dữ liệu rỗng có header 268 byte và payload rỗng. Một loại byte có mã 0 dài 1 bit. `decompress` và `huffman_decompress` báo `ValueError` khi magic sai, blob ngắn hơn 268 byte hoặc số byte giải ra không khớp độ dài gốc (ví dụ payload bị cắt cụt). Hai kiểm tra độ dài được thêm khi merge; kiểm tra magic đã có trong bản partner.
 
-Bản chính giữ hành vi partner: không kiểm tra riêng bảng vượt Kraft, padding khác 0 hoặc byte thừa khi đã đủ độ dài gốc; độ dài gốc bằng 0 trả dữ liệu rỗng ngay sau kiểm tra header. Bản đối chứng `huffman_alt.py` kiểm tra nghiêm ngặt hơn các trường hợp này. Test cũ tương ứng giữ kiểm tra từ chối ở bản đối chứng và xác nhận hành vi hiện tại của bản chính. Định dạng không chứa checksum nên không phát hiện được mọi thay đổi bit; SHA-256 được đối chiếu bên ngoài trong test.
+Bản chính đã được gia cố sau đợt rà soát: từ chối bảng độ dài vượt khả năng biểu diễn (Kraft), padding khác 0 và byte payload thừa. Input rỗng phải có bảng mã rỗng và không có payload. Các kiểm thử yêu cầu cả bản chính và bản đối chứng từ chối các luồng sai này. Định dạng không chứa checksum nên vẫn cần kiểm tra SHA-256 bên ngoài để phát hiện thay đổi dữ liệu hợp lệ về mặt cú pháp.
 
 Khi so sánh với H0, độ dài mã trung bình bằng tổng `tần suất × độ dài mã` chia số byte gốc. Kích thước payload thực tế còn tối đa 7 bit đệm; tổng file còn 268 byte header. Test văn bản mẫu kiểm tra cả độ dài mã trung bình và payload gồm đệm đều thuộc `[H0, H0 + 1)`. Giới hạn trên nghiêm ngặt này không áp dụng cho trường hợp duy nhất một loại byte vì quy ước mã dài 1 bit.
 
