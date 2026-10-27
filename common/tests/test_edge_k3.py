@@ -1,4 +1,4 @@
-"""K=3 ch? ???c ghi CSV cho edge; kh?ng n?i t?p K c?n l?i."""
+"""K=3 chỉ được ghi CSV cho edge; không nới tập K còn lại."""
 import csv
 
 import pytest
