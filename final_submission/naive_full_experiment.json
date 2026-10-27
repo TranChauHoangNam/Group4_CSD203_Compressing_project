@@ -1,0 +1,70 @@
+{
+  "timer": "time.perf_counter",
+  "runs_per_cell": 1,
+  "cells": [
+    {
+      "id": "V1|1024",
+      "corpus": "V1",
+      "variant": "naive",
+      "k": 1024,
+      "raw_bytes": 1048575,
+      "train_runs": 1,
+      "train_ms": 22819.33119999303,
+      "m_actual": 1024,
+      "input_sha256": "61633cf2b34d99e4e1893dd84d36d3666feb23aeb618c9b7e2bedf5e3db641a3",
+      "merges_sha256": "7f3509fb4ff862df7bd9e79686eafbbb1d9f26de8b2b74ac01fc72eea42496b6",
+      "matches_full_inc": true,
+      "first_mismatch_index": null,
+      "naive_pair_at_mismatch": null,
+      "inc_pair_at_mismatch": null
+    },
+    {
+      "id": "E1|1024",
+      "corpus": "E1",
+      "variant": "naive",
+      "k": 1024,
+      "raw_bytes": 1048576,
+      "train_runs": 1,
+      "train_ms": 56807.807699995465,
+      "m_actual": 1024,
+      "input_sha256": "bb8b4684207f9f2fba2f971d8597f3ed061b69872ec0711e6b0188f82bbae93a",
+      "merges_sha256": "9613d18b4befe80275566dcc4dfdbf624db32214b41c09f00bd3cba96ec18327",
+      "matches_full_inc": true,
+      "first_mismatch_index": null,
+      "naive_pair_at_mismatch": null,
+      "inc_pair_at_mismatch": null
+    },
+    {
+      "id": "V1|3840",
+      "corpus": "V1",
+      "variant": "naive",
+      "k": 3840,
+      "raw_bytes": 1048575,
+      "train_runs": 1,
+      "train_ms": 78275.21840001282,
+      "m_actual": 3840,
+      "input_sha256": "61633cf2b34d99e4e1893dd84d36d3666feb23aeb618c9b7e2bedf5e3db641a3",
+      "merges_sha256": "18a298385a503883ccee83a65e79d6594ae4092f9e6cca7096ac6d811e1eb0f8",
+      "matches_full_inc": true,
+      "first_mismatch_index": null,
+      "naive_pair_at_mismatch": null,
+      "inc_pair_at_mismatch": null
+    },
+    {
+      "id": "E1|3840",
+      "corpus": "E1",
+      "variant": "naive",
+      "k": 3840,
+      "raw_bytes": 1048576,
+      "train_runs": 1,
+      "train_ms": 193327.8403000004,
+      "m_actual": 3840,
+      "input_sha256": "bb8b4684207f9f2fba2f971d8597f3ed061b69872ec0711e6b0188f82bbae93a",
+      "merges_sha256": "6b7d1eadfa0a3355944fe7a5e84e3c0a79d9bf5524d463d836f40b872f0e6e31",
+      "matches_full_inc": true,
+      "first_mismatch_index": null,
+      "naive_pair_at_mismatch": null,
+      "inc_pair_at_mismatch": null
+    }
+  ]
+}

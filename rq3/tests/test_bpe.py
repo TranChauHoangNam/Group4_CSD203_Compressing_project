@@ -37,15 +37,17 @@ def test_short_file_roundtrip(tmp_path):
     assert bpe.decompress(bpe.compress(data, 256, "naive")) == data
 
 
-@pytest.mark.parametrize("data,expected", [(b"aaa", [(97, 97)]), (b"aaaa", [(97, 97)]), (b"abababab", [(97, 98), (256, 256)])])
-def test_overlap_counts_and_early_stop(data, expected):
+@pytest.mark.parametrize("data,expected", [(b"aaa", [(97, 97), (256, 97)]), (b"aaaa", [(97, 97), (256, 256)]), (b"abababab", [(97, 98), (256, 256), (257, 257)])])
+def test_overlap_counts_until_no_pairs(data, expected):
     assert bpe.train(data, 256, "naive") == expected
 
 
-def test_no_repeated_pair():
-    data = bytes(range(256))
-    assert bpe.train(data, 3840, "naive") == []
-    assert bpe.encode(data, []) == list(data)
+@pytest.mark.parametrize("variant", VARIANTS)
+def test_singleton_pair_is_merged(variant):
+    # The assignment chooses the largest positive count, including one.
+    assert bpe.train(b"ab", 1, variant) == [(97, 98)]
+    assert bpe.train(b"abc", 3, variant) == [(97, 98), (256, 99)]
+    assert bpe.train(b"a b", 256, variant) == [(32, 98)]
 
 
 @pytest.mark.parametrize("seed", range(100))
@@ -193,8 +195,6 @@ def recount_occurrences(data, k):
         if not counts:
             break
         pair = min(counts, key=lambda p: (-counts[p], p))
-        if counts[pair] < 2:
-            break
         rewritten = []
         for segment in segments:
             output, i = [], 0

@@ -168,13 +168,13 @@ def extended_sections():
                                 unique_bytes=low['unique_bytes'], m_K64=low['m'], m_K256=high['m'],
                                 ms_K64=fmt(low['train_ms']), ms_K256=fmt(high['train_ms']),
                                 time_256_over_64=fmt(high['train_ms']/low['train_ms'])))
-    text += '\n## Discussion skeleton\n\n### Heap speedup\n\nUse the full-scope training-speed ratios above as observed associations. [GIAI THICH - can kiem chung] Heap selection may reduce scanning costs; separate profiling is needed to isolate selection from index updates and allocation costs.\n\n### K-scaling in Phase 3\n\nThe following are single-run V1 prefix measurements from rq3/out/phase3_measurements.json, with zero-based JSON cell indices (not results_rq3.csv, which does not contain these prefix experiments). Increasing requested K from 64 to 256 multiplies K by four; actual learned m is shown. These are fixed-prefix comparisons, not full-corpus extrapolations.\n\n' + as_md(scaling)
-    text += '\n[GIAI THICH - can kiem chung] A roughly linear dependence on K is a working expectation for naive full recount over unique weighted segments, not a fitted law: sequence shrinkage and timing noise can change the observed factor. [GIAI THICH - can kiem chung] noheap scaling may reflect scanning the changing pair table as well as incremental updates. [GIAI THICH - can kiem chung] inc scaling may reflect heap maintenance, lazy invalidation and affected-segment updates rather than K alone. These mechanisms need profiling and repeated measurements.\n\n### Cross-language gap\n\nRead the ratio matrices together with same-test token-inflation ratios. The corpora are non-parallel, so topic, text composition and language are confounded. [GIAI THICH - can kiem chung] Differences in segment and pair frequencies may contribute to the gap; controlled parallel corpora and frequency analysis are needed before attributing it to language.\n'
+    text += '\n## Discussion\n\n### Heap speedup\n\nUse the full-scope training-speed ratios above as observed associations. Interpretation (not isolated by profiling): Heap selection may reduce scanning costs; separate profiling is needed to isolate selection from index updates and allocation costs.\n\n### K-scaling in Phase 3\n\nThe following are single-run V1 prefix measurements from rq3/out/phase3_measurements.json, with zero-based JSON cell indices (not results_rq3.csv, which does not contain these prefix experiments). Increasing requested K from 64 to 256 multiplies K by four; actual learned m is shown. These are fixed-prefix comparisons, not full-corpus extrapolations.\n\n' + as_md(scaling)
+    text += '\nInterpretation (not isolated by profiling): A roughly linear dependence on K is a working expectation for naive full recount over unique weighted segments, not a fitted law: sequence shrinkage and timing noise can change the observed factor. Interpretation (not isolated by profiling): noheap scaling may reflect scanning the changing pair table as well as incremental updates. Interpretation (not isolated by profiling): inc scaling may reflect heap maintenance, lazy invalidation and affected-segment updates rather than K alone. These mechanisms need profiling and repeated measurements.\n\n### Cross-language gap\n\nRead the ratio matrices together with same-test token-inflation ratios. The corpora are non-parallel, so topic, text composition and language are confounded. Interpretation (not isolated by profiling): Differences in segment and pair frequencies may contribute to the gap; controlled parallel corpora and frequency analysis are needed before attributing it to language.\n'
     return text
 
 
 def draft(t):
-    text="""# RQ3 report draft - approved mixed training scopes
+    text="""# RQ3 analysis - full-corpus training
 
 ## Method
 
@@ -184,8 +184,9 @@ and fixed 12-bit codes. Compressed size includes the 22-byte fixed overhead,
 3 bytes per actual merge, and the zero-padded token payload.
 
 inc/noheap train on the full V1/E1 corpora at K=256/1024/3840; train_ms is the
-median of 3 runs. naive uses full training data only at K=256 and 128 KiB prefixes
-at K=1024/3840; train_ms is a single run, explicitly labelled in notes.
+median of 3 runs. naive uses the same full training input at all K; train_ms
+is one measured run. Four high-K timings come from the verified supplement;
+their test compression, decompression and memory were measured again.
 All variants compress/decompress FULL test files. Times are medians of 3 untraced
 runs using time.perf_counter. Training is timed separately and reused for both
 test corpora. Every restored result is checked against full SHA-256 before CSV.
@@ -198,12 +199,10 @@ Traced elapsed times are not timing benchmarks and are not substituted for train
 
 ## Comparability and limitations
 
-At K=256 all three variants use identical training input and must give identical
-merges, n_tokens and comp_bytes. At higher K only inc/noheap use identical input;
-naive prefix-trained results must not be interpreted as a pure algorithm effect.
-The naive curve changes training scope at K=1024. Plots label this explicitly.
-Timing and memory are machine/load dependent; the single naive run has no
-repeatability estimate. No full naive K=3840 was run.
+All three variants use identical full training input at every K and must give
+identical merges, n_tokens and comp_bytes. The current matrix has no prefix
+training rows. Historical mixed-scope inputs are archived separately. Timing
+and memory remain machine/load dependent; naive has no repeatability estimate.
 
 Every table row identifies its source line in results/results_rq3.csv (header is
 line 1). The training-memory table instead identifies train_mem.csv lines.
@@ -223,8 +222,8 @@ same-language training on the SAME test corpus, variant and K.
     for row in t['training']:
         if int(row['m']) < int(row['K']):
             text+=f"- Early stop: {row['variant']} {row['train']} train_prefix_kib={row['train_prefix_kib']}, requested K={row['K']}, actual m={row['m']} (CSV line {row['csv_line']}).\n"
-    text+='\n[GIAI THICH - can kiem chung] A mismatch between training and test segment frequencies may contribute to cross-corpus gaps; the measurements do not isolate this cause.\n'
-    text+='[GIAI THICH - can kiem chung] Heap-based pair selection may reduce training time relative to scanning, but this experiment does not separately profile selection and index-update costs.\n'
+    text+='\nInterpretation (not isolated by profiling): A mismatch between training and test segment frequencies may contribute to cross-corpus gaps; the measurements do not isolate this cause.\n'
+    text+='Interpretation (not isolated by profiling): Heap-based pair selection may reduce training time relative to scanning, but this experiment does not separately profile selection and index-update costs.\n'
     for title,name in [('Compression ratios','ratio'),('Tokens and bytes per token','tokens'),('Header and merge-table overhead','overhead'),('Cross-corpus gap','cross_gap'),('Training time and scope','training'),('LZW baselines','lzw'),('Separate training-memory: 128 KiB, K=256','training_memory')]:
         text+='\n## '+title+'\n\n'+as_md([{key: value for key, value in row.items() if key != 'ratio_minus_tokens_only'} for row in t[name]])
     text += extended_sections()
@@ -244,7 +243,7 @@ def plots(t):
         for ax,(a,b) in zip(axes.flat,[(a,b) for a in ('V1','E1') for b in ('V1','E1')]):
             for variant,(marker,line) in styles.items():
                 rows=sorted([r for r in t[source] if r['variant']==variant and r['train']==a and r['test']==b],key=lambda r:int(r['K']))
-                ax.plot([int(r['K']) for r in rows],[float(r[metric]) for r in rows],marker=marker,linestyle=line,label=variant+(' (128 KiB train for K>256)' if variant=='naive' else ' (full train)'))
+                ax.plot([int(r['K']) for r in rows],[float(r[metric]) for r in rows],marker=marker,linestyle=line,label=variant+' (full train)')
             if name=='rq3_ratio':
                 baseline=next(r for r in t['lzw'] if r['test']==b)
                 ax.axhline(float(baseline['ratio']),color='black',linestyle='-.',label='LZW full test')
@@ -254,14 +253,14 @@ def plots(t):
     for ax,b in zip(axes,('V1','E1')):
         for variant,(marker,line) in styles.items():
             rows=sorted([r for r in t['cross_gap'] if r['test']==b and r['variant']==variant],key=lambda r:int(r['K']))
-            ax.plot([int(r['K']) for r in rows],[float(r['delta_ratio']) for r in rows],marker=marker,linestyle=line,label=variant+(' (prefix for K>256)' if variant=='naive' else ''))
+            ax.plot([int(r['K']) for r in rows],[float(r['delta_ratio']) for r in rows],marker=marker,linestyle=line,label=variant)
         ax.axhline(0,color='black',linewidth=.7);ax.set(title=f'Test {b}: cross minus same corpus',xlabel='K',ylabel='Ratio difference');ax.legend(fontsize=8);ax.grid(alpha=.25)
     fig.tight_layout();fig.savefig(OUT/'rq3_cross_gap.png',dpi=160);plt.close(fig)
     fig,axes=plt.subplots(1,2,figsize=(11,4))
     for ax,a in zip(axes,('V1','E1')):
         for variant,(marker,line) in styles.items():
             rows=sorted([r for r in t['training'] if r['train']==a and r['variant']==variant],key=lambda r:int(r['K']))
-            ax.plot([int(r['K']) for r in rows],[float(r['train_ms']) for r in rows],marker=marker,linestyle=line,label=variant+(' single; prefix K>256' if variant=='naive' else ' median3; full'))
+            ax.plot([int(r['K']) for r in rows],[float(r['train_ms']) for r in rows],marker=marker,linestyle=line,label=variant+(' single; full' if variant=='naive' else ' median3; full'))
         ax.set(title=f'Train {a}',xlabel='K',ylabel='train_ms (log scale)',yscale='log');ax.legend(fontsize=8);ax.grid(alpha=.25)
     fig.tight_layout();fig.savefig(OUT/'rq3_train_ms.png',dpi=160);plt.close(fig)
     fig,ax=plt.subplots(figsize=(9,4))

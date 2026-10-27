@@ -58,6 +58,8 @@ def _iter_codes(body):
         i += 3
     rem = m - i
     if rem == 2:
+        if body[i + 1] & 0x0F:
+            raise ValueError("LZW padding must be zero")
         yield ((body[i] << 8) | body[i + 1]) >> 4
     elif rem == 1:
         raise ValueError("Payload LZW bị cắt cụt")

@@ -113,13 +113,11 @@ def test_truncated_final_byte(data: bytes) -> None:
 
 
 def test_invalid_table() -> None:
-    """Bản đối chứng kiểm tra Kraft; bản chính kiểm tra độ dài giải mã."""
     blob = bytearray(compress(b"ABC"))
     blob[12 + 65:12 + 68] = bytes([1, 1, 1])
-    with pytest.raises(ValueError):
-        huffman_alt.decompress(bytes(blob))
-    # Partner không kiểm tra Kraft; không thêm kiểm tra ngoài phạm vi merge.
-    assert decompress(bytes(blob)) == b"BAB"
+    for decoder in (decompress, huffman_alt.decompress):
+        with pytest.raises(ValueError):
+            decoder(bytes(blob))
     blob[12:HEADER_SIZE] = bytes(256)
     for decoder in (decompress, huffman_alt.decompress):
         with pytest.raises(ValueError):
@@ -127,20 +125,12 @@ def test_invalid_table() -> None:
 
 
 def test_invalid_payload_and_padding() -> None:
-    """Giữ kiểm tra nghiêm ngặt ở bản đối chứng, ghi nhận hành vi partner."""
     blob = compress(b"A")
-    for invalid in (blob[:-1] + b"\x80", blob[:-1] + b"\x01", blob + b"\x00"):
-        with pytest.raises(ValueError):
-            huffman_alt.decompress(invalid)
-    with pytest.raises(ValueError):
-        huffman_alt.decompress(compress(b"") + b"\x00")
-    # Không giải được đủ byte: cả hai bản đều phải từ chối.
-    with pytest.raises(ValueError):
-        decompress(blob[:-1] + b"\x80")
-    # Partner dừng ngay khi đủ độ dài gốc, không kiểm tra phần còn lại.
-    assert decompress(blob[:-1] + b"\x01") == b"A"
-    assert decompress(blob + b"\x00") == b"A"
-    assert decompress(compress(b"") + b"\x00") == b""
+    for decoder in (decompress, huffman_alt.decompress):
+        for invalid in (blob[:-1] + b"\x80", blob[:-1] + b"\x01", blob + b"\x00",
+                        compress(b"") + b"\x00"):
+            with pytest.raises(ValueError):
+                decoder(invalid)
 
 
 def test_round_trip_one_mib() -> None:

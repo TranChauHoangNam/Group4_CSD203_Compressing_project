@@ -11,6 +11,10 @@ class RoundTripError(Exception):
 
 
 def measure(codec, data: bytes, repeats: int = 3, with_mem: bool = True) -> dict:
+    if repeats < 1:
+        raise ValueError("repeats must be positive")
+    if tracemalloc.is_tracing():
+        raise RuntimeError("Tracing must be off before measuring")
     ref = sha256_hex(data)
     comp_t, dec_t = [], []
     blob = back = None
@@ -28,11 +32,16 @@ def measure(codec, data: bytes, repeats: int = 3, with_mem: bool = True) -> dict
     peak_kib = None
     if with_mem:  # đo riêng, vì tracemalloc làm chậm chương trình
         tracemalloc.start()
-        tracemalloc.reset_peak()
-        b2 = codec.compress(data)
-        d2 = codec.decompress(b2)
-        peak_kib = tracemalloc.get_traced_memory()[1] / 1024
-        tracemalloc.stop()
+        try:
+            b2 = codec.compress(data)
+            d2 = codec.decompress(b2)
+            peak_kib = tracemalloc.get_traced_memory()[1] / 1024
+        finally:
+            tracemalloc.stop()
+        if sha256_hex(d2) != ref:
+            raise RoundTripError("SHA-256 mismatch in memory pass")
+        if b2 != blob:
+            raise RoundTripError("Compressed output differs in memory pass")
         del b2, d2
 
     return {

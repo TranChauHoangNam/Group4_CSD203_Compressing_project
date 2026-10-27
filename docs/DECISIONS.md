@@ -1,3 +1,5 @@
+> Trạng thái hiện tại (2026-10-27): results/results_rq1.csv đã là bản 150 hàng cùng máy được mô tả trong README. Các đoạn dưới nói việc thay thế đang chờ là hồ sơ lịch sử. RQ3 chính hiện dùng full train cho tất cả biến thể/K; dữ liệu mixed-scope được lưu trong results/archive/mixed_scope. Quy tắc BPE hiện dừng khi hết cặp hoặc đủ K, không dừng ở count=1.
+
 # Project decisions
 
 These decisions were approved by the project owner. They document the current implementation;

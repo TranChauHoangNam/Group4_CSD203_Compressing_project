@@ -64,8 +64,6 @@ def train(data: bytes, k: int, variant: str):
         if not counts:
             break
         pair = min(counts, key=lambda p: (-counts[p], p))
-        if counts[pair] < 2:
-            break
         new_id = 256 + len(merges)
         segments = [(_replace(tokens, pair, new_id), frequency)
                     for tokens, frequency in segments]
@@ -116,8 +114,6 @@ def _train_incremental(data, k, use_heap):
             if not counts:
                 break
             pair = min(counts, key=lambda p: (-counts[p], p))
-        if counts[pair] < 2:
-            break
         new_id = 256 + len(merges)
         dirty = set()
         # Snapshot affected segments; indexes are updated during replacement.
