@@ -139,22 +139,36 @@ def main():
         with (ROOT/'rq3/out/train_mem.csv').open(newline='',encoding='utf-8') as f: memory=list(csv.DictReader(f))
         assert len(memory)==6
         assert {(r['corpus'],r['variant']) for r in memory}=={(c,v) for c in CORPORA for v in VARIANTS}
+        missing_data=[]
         for r in memory:
             assert r['train_prefix_kib']=='128' and r['train_bytes']=='131072' and r['k']=='256'
             assert float(r['peak_train_mem_kib'])>0
             assert r['scope']=='training_only_128KiB_prefix_single_traced_run'
-            actual=(ROOT/'data/wiki'/f"{r['corpus'].lower()}_train_1mib.txt").read_bytes()[:131072]
+            path=ROOT/'data/wiki'/f"{r['corpus'].lower()}_train_1mib.txt"
+            if not path.is_file():
+                if path not in missing_data:
+                    missing_data.append(path)
+                continue
+            actual=path.read_bytes()[:131072]
             assert r['train_sha256']==hashlib.sha256(actual).hexdigest()
         for corpus in CORPORA:
             same=[r for r in memory if r['corpus']==corpus]
             assert len({(r['train_sha256'],r['m']) for r in same})==1
-        checks.append(('6 separate training-memory rows, 128 KiB K=256',True,''))
+        reason="thi\u1ebfu "+', '.join(str(p) for p in missing_data)+"; see README 'Data' section" if missing_data else ''
+        checks.append(('6 separate training-memory rows, 128 KiB K=256',None if missing_data else True,reason))
     except (AssertionError,KeyError,ValueError) as exc:
         checks.append(('6 separate training-memory rows, 128 KiB K=256',False,str(exc)))
     for title,passed,reason in checks:
-        print(('\u0110\u1ea0T' if passed else 'KH\u00d4NG \u0110\u1ea0T')+' '+title+(': '+reason if reason else ''))
-    print(f"SUMMARY: {sum(ok for _,ok,_ in checks)}/{len(checks)} checks passed")
-    return int(not all(ok for _,ok,_ in checks))
+        if passed is None:
+            print('CH\u01afA KI\u1ec2M ('+reason+') '+title)
+        else:
+            print(('\u0110\u1ea0T' if passed else 'KH\u00d4NG \u0110\u1ea0T')+' '+title+(': '+reason if reason else ''))
+    passed_count=sum(ok is True for _,ok,_ in checks)
+    unchecked=sum(ok is None for _,ok,_ in checks)
+    print(f"SUMMARY: {passed_count}/{len(checks)} checks passed"+(f"; {unchecked} unchecked (missing data)" if unchecked else ''))
+    if any(ok is False for _,ok,_ in checks):
+        return 1
+    return 2 if unchecked else 0
 
 
 if __name__=='__main__': raise SystemExit(main())

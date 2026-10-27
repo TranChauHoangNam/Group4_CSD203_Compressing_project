@@ -140,6 +140,13 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         results = check_results(args.csv, args.data_dir, args.seeds, args.runner_log)
+    except FileNotFoundError as exc:
+        missing = Path(exc.filename) if exc.filename else None
+        if missing in {args.data_dir / file for file in FILES}:
+            print(f"Missing data file: {missing}. See README 'Data' section.")
+            return 2
+        print(f"KH\u00d4NG \u0110\u1ea0T: kh\u00f4ng \u0111\u1ecdc \u0111\u01b0\u1ee3c \u0111\u1ea7u v\u00e0o: {exc}")
+        return 1
     except (OSError, ValueError, csv.Error) as exc:
         print(f"KHÔNG ĐẠT: không đọc được đầu vào: {exc}")
         return 1

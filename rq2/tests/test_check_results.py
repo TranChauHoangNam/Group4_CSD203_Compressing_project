@@ -70,3 +70,20 @@ def test_runner_warning_rejected(sample_results):
     with log.open("a", encoding="utf-8") as stream:
         stream.write("Cảnh báo: bỏ qua codec rle\n")
     assert not check_results(*sample_results)[7]["ok"]
+
+
+@pytest.mark.parametrize('mode,expected', [('complete', 0), ('missing_data', 2), ('missing_csv', 1)])
+def test_main_distinguishes_missing_input_from_failure(sample_results, capsys, mode, expected):
+    from rq2.check_results import main
+    path, data_dir, seeds, log = sample_results
+    if mode == 'missing_data':
+        (data_dir / FILES[0]).unlink()
+    elif mode == 'missing_csv':
+        path.unlink()
+    result = main(['--csv', str(path), '--data-dir', str(data_dir), '--seeds', '1', '--runner-log', str(log)])
+    assert result == expected
+    output = capsys.readouterr().out
+    if mode == 'missing_data':
+        assert 'Missing data file:' in output
+        assert "See README 'Data' section." in output
+        assert 'KH\u00d4NG \u0110\u1ea0T' not in output
