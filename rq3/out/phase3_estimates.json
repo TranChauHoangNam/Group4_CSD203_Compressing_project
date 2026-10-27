@@ -1,0 +1,327 @@
+{
+  "label": "ESTIMATE",
+  "method": "log(T_ms)=a+b*log(X)+c*log(m)",
+  "cv": "leave-one-prefix-size-out (both K rows held out together)",
+  "range": "min/max of both predictor models and their four CV refits; sensitivity envelope, NOT confidence interval",
+  "assumption": "extrapolation assumes m=K; possible early stopping and shrinking pair dictionaries are not modeled",
+  "models": {
+    "naive": {
+      "raw_bytes": {
+        "coefficients": [
+          -8.839788108510977,
+          0.9498600279167746,
+          0.9676925982556152
+        ],
+        "cv_mape_percent": 25.147202848966003,
+        "fold_coefficients": [
+          [
+            -10.560557570872241,
+            1.0957672554756424,
+            0.9818917677413609
+          ],
+          [
+            -8.72082637147735,
+            0.9353243595082573,
+            0.9805521015812325
+          ],
+          [
+            -9.187710598827227,
+            0.9833203600535861,
+            0.977258560200546
+          ],
+          [
+            -6.729855603388678,
+            0.759795251658383,
+            0.9310679634993376
+          ]
+        ]
+      },
+      "unique_bytes": {
+        "coefficients": [
+          -11.62697707026712,
+          1.364186428895836,
+          0.9676925982555966
+        ],
+        "cv_mape_percent": 21.104234741438695,
+        "fold_coefficients": [
+          [
+            -12.89718091283904,
+            1.4850183791296026,
+            0.9818917677413826
+          ],
+          [
+            -11.648055172313732,
+            1.3602699476434823,
+            0.98055210158125
+          ],
+          [
+            -12.131853305972811,
+            1.4190006160150734,
+            0.9772585602005199
+          ],
+          [
+            -9.084591300335,
+            1.1050297638104398,
+            0.9310679634993526
+          ]
+        ]
+      }
+    },
+    "noheap": {
+      "raw_bytes": {
+        "coefficients": [
+          -7.777117964347375,
+          0.8131284276702158,
+          0.6179062427449189
+        ],
+        "cv_mape_percent": 34.536282946708624,
+        "fold_coefficients": [
+          [
+            -10.206525004989018,
+            1.0249003296784758,
+            0.6244708747019898
+          ],
+          [
+            -7.371207785631926,
+            0.7902077822575254,
+            0.5931872449662469
+          ],
+          [
+            -8.142453623155877,
+            0.8580465234198191,
+            0.6097823425275061
+          ],
+          [
+            -5.229911823445136,
+            0.5500291415424035,
+            0.6441845087839202
+          ]
+        ]
+      },
+      "unique_bytes": {
+        "coefficients": [
+          -10.191114192665541,
+          1.170755060935195,
+          0.6179062427448976
+        ],
+        "cv_mape_percent": 30.811850615809657,
+        "fold_coefficients": [
+          [
+            -12.365881919159278,
+            1.386297192292187,
+            0.6244708747020211
+          ],
+          [
+            -9.846877487418404,
+            1.1494932829937228,
+            0.593187244966257
+          ],
+          [
+            -10.750702564407625,
+            1.2423728225704243,
+            0.6097823425274963
+          ],
+          [
+            -6.973647108267542,
+            0.8041639923738533,
+            0.6441845087839346
+          ]
+        ]
+      }
+    }
+  },
+  "extrapolations": [
+    {
+      "label": "ESTIMATE",
+      "corpus": "V1",
+      "variant": "naive",
+      "k": 256,
+      "assumed_m": 256,
+      "central_seconds": {
+        "raw_bytes": 16.221522035222105,
+        "unique_bytes": 14.100497817703086
+      },
+      "range_seconds": [
+        7.250867890676698,
+        23.736403021904717
+      ],
+      "cross_corpus_transfer": false
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "V1",
+      "variant": "naive",
+      "k": 1024,
+      "assumed_m": 1024,
+      "central_seconds": {
+        "raw_bytes": 62.044115571016114,
+        "unique_bytes": 53.9316171633478
+      },
+      "range_seconds": [
+        26.360203730508296,
+        92.59182761376546
+      ],
+      "cross_corpus_transfer": false
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "V1",
+      "variant": "naive",
+      "k": 3840,
+      "assumed_m": 3840,
+      "central_seconds": {
+        "raw_bytes": 222.93918394701896,
+        "unique_bytes": 193.78905813521277
+      },
+      "range_seconds": [
+        90.24245174630266,
+        339.00744245676356
+      ],
+      "cross_corpus_transfer": false
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "E1",
+      "variant": "naive",
+      "k": 256,
+      "assumed_m": 256,
+      "central_seconds": {
+        "raw_bytes": 16.221536729616894,
+        "unique_bytes": 53.99394960564003
+      },
+      "range_seconds": [
+        7.832838168092581,
+        74.97289256502265
+      ],
+      "cross_corpus_transfer": true
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "E1",
+      "variant": "naive",
+      "k": 1024,
+      "assumed_m": 1024,
+      "central_seconds": {
+        "raw_bytes": 62.0441717741718,
+        "unique_bytes": 206.5161852379778
+      },
+      "range_seconds": [
+        28.47593046957972,
+        292.4569968617384
+      ],
+      "cross_corpus_transfer": true
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "E1",
+      "variant": "naive",
+      "k": 3840,
+      "assumed_m": 3840,
+      "central_seconds": {
+        "raw_bytes": 222.939385898252,
+        "unique_bytes": 742.0615055122627
+      },
+      "range_seconds": [
+        97.48550533234122,
+        1070.7759106803387
+      ],
+      "cross_corpus_transfer": true
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "V1",
+      "variant": "noheap",
+      "k": 256,
+      "assumed_m": 256,
+      "central_seconds": {
+        "raw_bytes": 1.0139760471375703,
+        "unique_bytes": 0.9048461195994782
+      },
+      "range_seconds": [
+        0.3728162615499237,
+        1.744828072776714
+      ],
+      "cross_corpus_transfer": false
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "V1",
+      "variant": "noheap",
+      "k": 1024,
+      "assumed_m": 1024,
+      "central_seconds": {
+        "raw_bytes": 2.3880549896473604,
+        "unique_bytes": 2.131038792161286
+      },
+      "range_seconds": [
+        0.910610318107791,
+        4.146880967007299
+      ],
+      "cross_corpus_transfer": false
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "V1",
+      "variant": "noheap",
+      "k": 3840,
+      "assumed_m": 3840,
+      "central_seconds": {
+        "raw_bytes": 5.404329586864604,
+        "unique_bytes": 4.822684588571295
+      },
+      "range_seconds": [
+        2.1336079318624575,
+        9.466455055814954
+      ],
+      "cross_corpus_transfer": false
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "E1",
+      "variant": "noheap",
+      "k": 256,
+      "assumed_m": 256,
+      "central_seconds": {
+        "raw_bytes": 1.0139768334358095,
+        "unique_bytes": 2.8642088211774115
+      },
+      "range_seconds": [
+        0.39042213784041374,
+        5.077566809192405
+      ],
+      "cross_corpus_transfer": true
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "E1",
+      "variant": "noheap",
+      "k": 1024,
+      "assumed_m": 1024,
+      "central_seconds": {
+        "raw_bytes": 2.3880568414893624,
+        "unique_bytes": 6.745611186884877
+      },
+      "range_seconds": [
+        0.9536129825913396,
+        12.067701963460701
+      ],
+      "cross_corpus_transfer": true
+    },
+    {
+      "label": "ESTIMATE",
+      "corpus": "E1",
+      "variant": "noheap",
+      "k": 3840,
+      "assumed_m": 3840,
+      "central_seconds": {
+        "raw_bytes": 5.404333777708016,
+        "unique_bytes": 15.265773307904038
+      },
+      "range_seconds": [
+        2.234365439446968,
+        27.548019625583336
+      ],
+      "cross_corpus_transfer": true
+    }
+  ]
+}

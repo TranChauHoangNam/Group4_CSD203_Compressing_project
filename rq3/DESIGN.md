@@ -66,3 +66,22 @@ strings (2-4 letters plus spaces/newlines, length 0..300) at K=0,1,3,16,64,256,
 and the first 64 KiB of V1/E1 train at K=256. Corpus tests validate the original
 file against docs/manifest.json and fail clearly if required data are missing.
 No performance conclusions or Phase 3 benchmarks are part of these tests.
+
+
+## Phase 4 measurement contract (user approved)
+
+Full train: inc/noheap at K=256/1024/3840, median of three training runs;
+naive at K=256, one training run. Naive K=1024/3840 uses the 128 KiB train
+prefix, one run, labelled train_prefix_kib=128. All test files stay full size.
+Models are reused between the two test corpora; training is not included in
+comp_ms. Compression/decompression times are medians of three untraced runs.
+
+peak_mem_kib is a separate compress/decompress traced pass with pretrained merges,
+on full test data for every variant. The independent train_mem.csv measures only
+training on identical 128 KiB prefixes at K=256, one traced run per variant/corpus.
+The learned input table was allocated before the compression trace and is not
+counted as a new allocation in that pass, consistent with the stated scope.
+
+A shared (train corpus, test corpus, K) is not enough to compare naive to the
+other variants at K>256: the checker also requires identical training input hash.
+For equal training inputs, merges, token counts and compressed sizes must match.
