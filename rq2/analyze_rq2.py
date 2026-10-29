@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+from common.results_schema import is_ok
+
 import csv
 from io import BytesIO, StringIO
 import math
@@ -34,7 +36,9 @@ def summarize(rows):
     throughput tính lại từ thời gian trung bình. Repeats đã được runner tổng hợp.
     """
     groups = {}
-    for row in rows:
+    for line, row in enumerate(rows, 2):
+        if not is_ok(row, f"RQ2 CSV line {line}"):
+            continue
         key = (row["file"], row["codec"], row["state"])
         if key[1] not in CODECS or key[2] not in STATES:
             raise ValueError(f"Codec/state không hợp lệ: {key}")

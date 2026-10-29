@@ -1,5 +1,7 @@
 """Median/min/max RQ1 tables and figures derived solely from the recorded CSV."""
 import argparse
+from common.results_schema import is_ok
+
 import csv
 import io
 import math
@@ -39,7 +41,7 @@ CAPTION = (
 def read_rows(path):
     with Path(path).open(encoding='utf-8', newline='') as stream:
         reader = csv.DictReader(stream)
-        required = {'dataset', 'size_kib', 'codec', 'seed', *METRICS}
+        required = {'status', 'dataset', 'size_kib', 'codec', 'seed', *METRICS}
         if not required <= set(reader.fieldnames or ()):
             raise ValueError('Missing analysis columns')
         return list(reader)
@@ -48,6 +50,8 @@ def read_rows(path):
 def summarize(rows):
     groups = {}
     for line, row in enumerate(rows, 2):
+        if not is_ok(row, f"RQ1 CSV line {line}"):
+            continue
         group = (row['dataset'], int(row['size_kib']), row['codec'])
         if group[0] not in DATASETS or group[2] not in CODECS:
             raise ValueError(f'Unsupported group at CSV line {line}: {group}')

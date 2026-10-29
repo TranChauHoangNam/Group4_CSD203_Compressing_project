@@ -12,7 +12,7 @@ def test_k_scope(tmp_path, rq, k):
     row = {"rq": rq, "dataset": "" if rq == "edge" else "V1",
            "state": "original", "codec": "bpe", "train_variant": "naive",
            "k_merges": k, "orig_bytes": 11, "comp_bytes": 31,
-           "roundtrip_ok": True, "output_check": sha16(b"aaabdaaabac")}
+           "roundtrip_ok": True, "status": "ok", "comp_ms": 1, "decomp_ms": 1, "output_check": sha16(b"aaabdaaabac")}
     path = tmp_path / "result.csv"
     if int(k) in {256, 1024, 3840} or (rq == "edge" and int(k) == 3):
         append_row(str(path), row)

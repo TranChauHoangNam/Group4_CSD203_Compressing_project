@@ -1,5 +1,7 @@
 """Generate the revised report and its numerical tables from primary CSVs."""
 import argparse
+from common.results_schema import require_ok_rows
+
 import csv
 import hashlib
 import json
@@ -13,7 +15,8 @@ TARGET = OUT / 'CSD203_DA4_Report_Revised.md'
 
 def read(relative):
     with (ROOT / relative).open(encoding='utf-8', newline='') as stream:
-        return list(csv.DictReader(stream))
+        rows = list(csv.DictReader(stream))
+        return require_ok_rows(rows) if rows and "roundtrip_ok" in rows[0] else rows
 
 
 def table(headers, rows):

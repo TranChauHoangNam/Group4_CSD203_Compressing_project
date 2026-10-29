@@ -10,7 +10,7 @@ from rq2.analyze_rq2 import CODECS, read_rows, summarize, write_tables
 def synthetic_csv(tmp_path):
     path = tmp_path / "synthetic.csv"
     columns = ("file", "codec", "state", "seed", "ratio", "h0_ratio", "comp_kibs",
-               "decomp_kibs", "peak_mem_kib", "roundtrip_ok", "notes")
+               "decomp_kibs", "peak_mem_kib", "roundtrip_ok", "notes", "status")
     with path.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=columns)
         writer.writeheader()
@@ -22,7 +22,7 @@ def synthetic_csv(tmp_path):
                     writer.writerow(dict(file=file, codec=codec, state=state, seed=seed,
                                          ratio=value, h0_ratio=.1, comp_kibs=value * 100,
                                          decomp_kibs=value * 200, peak_mem_kib=value * 10,
-                                         roundtrip_ok="true", notes="ratio_no_header=0.123456" if codec == "huffman" else ""))
+                                         roundtrip_ok="true", status="ok", notes="ratio_no_header=0.123456" if codec == "huffman" else ""))
     return path
 
 

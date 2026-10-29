@@ -42,7 +42,7 @@ def read_rows(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as stream:
         records = list(csv.reader(stream))
     assert records[0] == COLUMNS
-    assert all(len(record) == 28 for record in records)
+    assert all(len(record) == 29 for record in records)
     rows = [dict(zip(COLUMNS, record)) for record in records[1:]]
     for row in rows:
         validate_row(row)

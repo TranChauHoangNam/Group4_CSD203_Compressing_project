@@ -217,7 +217,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                         "orig_bytes": len(reordered), "comp_bytes": result.comp_bytes,
                         "h0_bits": h0_bits, "comp_ms": result.comp_ms,
                         "decomp_ms": result.decomp_ms, "peak_mem_kib": result.peak_mem_kib,
-                        "output_check": sha16(result.restored), "roundtrip_ok": True,
+                        "output_check": sha16(result.restored), "roundtrip_ok": True, "status": "ok",
                         "notes": notes,
                     }
                     if written == 0:

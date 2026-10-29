@@ -124349,5 +124349,39 @@
         "rq2/tests/reference/__init__.py": "04512a23b7b278810e86b84116e2a437670d8023819a6cfebad698502d1c605d"
       }
     }
-  ]
+  ],
+  "edge_original_projection": {
+    "method": "legacy-28-columns-utf8-lf-v1",
+    "columns": [
+      "rq",
+      "dataset",
+      "file",
+      "state",
+      "size_kib",
+      "seed",
+      "codec",
+      "train_variant",
+      "k_merges",
+      "train_corpus",
+      "test_corpus",
+      "orig_bytes",
+      "comp_bytes",
+      "ratio",
+      "ratio_tokens_only",
+      "h0_bits",
+      "h0_ratio",
+      "n_tokens",
+      "bytes_per_token",
+      "comp_ms",
+      "decomp_ms",
+      "comp_kibs",
+      "decomp_kibs",
+      "train_ms",
+      "peak_mem_kib",
+      "output_check",
+      "roundtrip_ok",
+      "notes"
+    ],
+    "row_count": 15
+  }
 }

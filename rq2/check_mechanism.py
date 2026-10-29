@@ -1,6 +1,8 @@
 """Kiem chung co che cho ket qua RQ2 tren du lieu that trong data/."""
 import argparse
 from collections import Counter
+from common.results_schema import require_ok_rows
+
 import csv
 import json
 from pathlib import Path
@@ -44,7 +46,7 @@ def inspect_data(d):
 
 def render(data_dir, csv_path):
     with csv_path.open(newline="", encoding="utf-8") as stream:
-        rows = list(csv.DictReader(stream))
+        rows = require_ok_rows(list(csv.DictReader(stream)))
     lines = ["[DO DUOC] Nguon ratio: " + csv_path.as_posix(),
              "Quy uoc: delta = CSV - du doan; KHOP neu abs(delta) < 0.05 (nguong doi chieu, khong phai kiem dinh).",
              "LZW: chi so byte bat dau tu 0; delta ratio = runs - original; khong phai du doan ratio."]

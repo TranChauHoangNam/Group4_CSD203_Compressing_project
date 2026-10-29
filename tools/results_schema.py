@@ -1,31 +1,15 @@
-"""Lược đồ CSV 28 cột + hàm ghi dòng có kiểm tra (bản thay thế tạm cho results_schema.py
-của nhóm nếu chưa có; cột và thứ tự đúng theo csv_schema.md).
+"""Lược đồ CSV 29 cột; dùng validator chung, giữ cách định dạng số Cặp 1.
 
 Quy ước: UTF-8 không BOM, phân cách phẩy, LF, ô không áp dụng để TRỐNG.
-Không ghi dòng nếu round-trip sai (roundtrip_ok phải là True).
+Status bắt buộc; chỉ status=ok có thời gian và tốc độ.
 """
 import csv
 import math
-import re
 from collections import Counter
 from pathlib import Path
 
-COLUMNS = [
-    "rq", "dataset", "file", "state", "size_kib", "seed", "codec", "train_variant",
-    "k_merges", "train_corpus", "test_corpus", "orig_bytes", "comp_bytes", "ratio",
-    "ratio_tokens_only", "h0_bits", "h0_ratio", "n_tokens", "bytes_per_token",
-    "comp_ms", "decomp_ms", "comp_kibs", "decomp_kibs", "train_ms", "peak_mem_kib",
-    "output_check", "roundtrip_ok", "notes",
-]
-assert len(COLUMNS) == 28
+from common.results_schema import COLUMNS, validate_row
 
-ALLOWED = {
-    "rq": {"1", "2", "3", "edge"},
-    "dataset": {"", "C1", "C2", "C3", "V1", "E1", "R1"},  # ca biên để trống dataset
-    "state": {"", "original", "runs", "shuffled"},
-    "codec": {"rle", "huffman", "lzw", "bpe"},
-    "train_variant": {"", "inc", "noheap", "naive"},
-}
 FLOAT_COLS = {"ratio", "ratio_tokens_only", "h0_bits", "h0_ratio", "bytes_per_token", "comp_ms",
               "decomp_ms", "comp_kibs", "decomp_kibs", "train_ms", "peak_mem_kib"}
 
@@ -55,20 +39,7 @@ def _fmt(col, v):
 
 
 def validate(row: dict):
-    unknown = set(row) - set(COLUMNS)
-    if unknown:
-        raise ValueError(f"Cột lạ: {sorted(unknown)}")
-    for col, ok in ALLOWED.items():
-        v = str(row.get(col) if row.get(col) is not None else "")
-        if v not in ok:
-            raise ValueError(f"Giá trị '{v}' không hợp lệ cho cột {col}")
-    if row.get("roundtrip_ok") is not True:
-        raise ValueError("roundtrip_ok phải là True; sai round-trip thì dừng và sửa lỗi, không ghi số liệu")
-    if not re.fullmatch(r"[0-9a-f]{16}", str(row.get("output_check", ""))):
-        raise ValueError("output_check phải là 16 ký tự hex")
-    for col in ("rq", "file", "codec", "orig_bytes", "comp_bytes"):
-        if row.get(col) in (None, ""):
-            raise ValueError(f"Thiếu cột bắt buộc {col}")
+    validate_row(row)
 
 
 class CsvWriter:
@@ -83,7 +54,7 @@ class CsvWriter:
                 header = next(csv.reader(f), [])
             if header != COLUMNS:
                 raise ValueError(
-                    f"Header CSV không khớp schema 28 cột: {self.path}. "
+                    f"Header CSV không khớp schema 29 cột: {self.path}. "
                     "Hãy dùng file mới hoặc sao lưu file cũ trước khi chạy."
                 )
 
@@ -97,5 +68,7 @@ class CsvWriter:
         keys = set()
         with open(self.path, newline="", encoding="utf-8") as f:
             for r in csv.DictReader(f):
-                keys.add(tuple(r[c] for c in key_cols))
+                validate_row(r)
+                if r["status"] == "ok":
+                    keys.add(tuple(r[c] for c in key_cols))
         return keys

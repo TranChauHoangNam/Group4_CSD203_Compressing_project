@@ -112,3 +112,23 @@ Ví dụ RQ1 cho `C1_262144_s2.bin` (orig_bytes=262144):
 | rle | 16704 | 0.063721 | true |
 | lzw | 60675 | 0.231457 | true |
 | huffman | 261838 | 0.998833 | true |
+
+## 2026-10-29: explicit result status (schema v2)
+
+Section 6 of the course rules requires ok/timeout/crash/oom/wrong. The active
+raw CSVs now have 29 columns, with mandatory status after notes. Both writers
+share validation and reject appending to a legacy header. Runners emit ok only
+after successful round-trip validation; automatic failure capture is deferred.
+
+Migration adds ok to the 266 existing successful rows (RQ1 150, RQ2 45, RQ3 38,
+edge 33), preserving all 28 original cell strings. The migration tool backs up
+original bytes outside the repository and is byte-idempotent. Historical ok
+does not assert that the run used a 60-second subprocess timeout. No measurement
+is rerun or reclassified based on its historical duration.
+
+Archives, derived tables and training-memory CSVs retain their original schemas.
+The edge audit retains its original SHA-256 and 2,482-byte length. A versioned
+projection removes status and serializes the original header plus 15 rows in
+legacy column order, UTF-8/LF, before checking the original digest. Historical
+source hashes in the audit remain unchanged; report_sources.json is refreshed
+for the new CSV/audit bytes without changing report numbers.

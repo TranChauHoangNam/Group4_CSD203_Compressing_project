@@ -60,7 +60,7 @@ Khi so sánh với H0, độ dài mã trung bình bằng tổng `tần suất ×
 
 ## Quy ước tích hợp CSV
 
-Áp dụng [common/csv_schema.md](../common/csv_schema.md) do người dùng cung cấp, đã chuyển nguyên nội dung sang thư mục chung. Tệp này quy định đủ **28 cột theo đúng thứ tự**, dùng chung cho ba cặp. [results_schema.py](../common/results_schema.py) được lưu nguyên nội dung người dùng cung cấp, gồm `COLUMNS`, `sha16`, `finalize_row`, `validate_row`, `append_row`. Các mục `[ĐX]` vẫn mang ý nghĩa đề xuất của tài liệu, không phải yêu cầu gốc của đề.
+Áp dụng [common/csv_schema.md](../common/csv_schema.md): **29 cột theo đúng thứ tự**, với `status` sau `notes`, dùng chung cho ba cặp. [results_schema.py](../common/results_schema.py) gồm `COLUMNS`, `sha16`, `finalize_row`, `validate_row`, `append_row`. Migration chỉ thêm `status=ok` vào kết quả lịch sử đã round-trip đúng, giữ nguyên từng ô cũ; archive vẫn dùng 28 cột.
 
 Runner mặc định ghi kết quả Cặp 2 vào `results_rq2.csv`; `results_edge.csv` là quy ước riêng cho ca biên, runner hiện tại chỉ ghi RQ2. Dùng UTF-8 không BOM, dấu phẩy, xuống dòng LF và dấu chấm thập phân. Giữ đủ các cột; ô không áp dụng để trống, không thay bằng `NA`, `0` hay `-`.
 

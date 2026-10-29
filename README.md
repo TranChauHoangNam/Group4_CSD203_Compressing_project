@@ -225,10 +225,26 @@ The shared container prefix is a four-byte codec magic plus an eight-byte big-en
 RLE uses `RLE1`, canonical Huffman `HUF1`, LZW `LZW1`, and BPE `BPE1`; payload formats are codec-specific.
 BPE adds the actual merge count (two bytes), a three-byte entry per merge, an eight-byte token count,
 and fixed 12-bit codes packed MSB-first with zero padding. Its total size includes the header and merge table.
-CSV uses the shared 28-column layout, original/restored SHA-256 checks, and explicit training scope in notes.
+CSV uses the shared 29-column layout (`status` follows `notes`), original/restored SHA-256 checks, and explicit training scope in notes.
 See [CSV schema](common/csv_schema.md) and [BPE design D1-D8](rq3/DESIGN.md).
 Pair 1's `tools/results_schema.py` uses CsvWriter and six decimal places; the shared writer uses append_row
 and six significant digits. Keep this distinction when comparing rounded values.
+
+Status is required: `ok`, `timeout`, `crash`, `oom`, or `wrong`. Only `ok` rows enter
+numeric summaries; excluded rows produce a warning. Fixed-matrix reports require all rows to be `ok`.
+Failure rows require a reason in `notes` and blank timing/throughput fields.
+The runners currently emit `ok` after successful validation; automatic failure capture and a
+60-second subprocess timeout are separate work, not implemented by this schema migration.
+Historical `ok` means the recorded run completed and passed round-trip checks; it does not
+retroactively certify a timeout protocol. No historical metric was recomputed.
+
+Migrate the four active raw CSVs with `python -m tools.migrate_add_status --backup-dir <outside-repo-directory>`.
+The command backs up changed sources before writing, preserves all 28 existing cell strings,
+and is byte-idempotent on a second run. Archives remain unchanged in the legacy schema;
+derived tables and the separate training-memory CSV keep their own schemas.
+The edge audit retains its historical hash: verification projects out `status`, serializes
+the original 15 rows plus the legacy header as UTF-8/LF, and compares against the original
+2,482-byte evidence. The audit records this projection explicitly.
 
 ## Selected recorded results
 

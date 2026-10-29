@@ -1,5 +1,7 @@
 """Đối chiếu từng số trong bảng truy vết và văn xuôi với CSV/output cơ chế."""
 import argparse
+from common.results_schema import require_ok_rows
+
 import csv
 from pathlib import Path
 import re
@@ -15,7 +17,7 @@ def section(report, name):
 
 def verify(csv_path, report_path, mechanism_path):
     with csv_path.open(newline='', encoding='utf-8') as stream:
-        rows = list(csv.DictReader(stream))
+        rows = require_ok_rows(list(csv.DictReader(stream)))
     report = report_path.read_text(encoding='utf-8')
     mechanism = mechanism_path.read_text(encoding='utf-8').splitlines()
     messages, ok = [], True

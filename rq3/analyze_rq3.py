@@ -1,5 +1,7 @@
 """Traceable RQ3 tables, plots and draft; no inferred causes presented as facts."""
 import argparse
+from common.results_schema import is_ok, require_ok_rows
+
 import csv
 import hashlib
 import io
@@ -33,6 +35,7 @@ def as_md(rows):
 def tables():
     records=read_csv(SOURCE)
     for line,r in enumerate(records,2): r['csv_line']=line
+    records=[r for r in records if is_ok(r, f"RQ3 CSV line {r['csv_line']}")]
     bpes=[r for r in records if r['codec']=='bpe']
     ratio=[];tokens=[];overhead=[];training=[];gaps=[]
     seen=set()
@@ -52,7 +55,9 @@ def tables():
                                  train_prefix_kib=notes['train_prefix_kib'],train_bytes=notes['train_bytes'],m=m,
                                  train_runs=notes['train_runs'],train_ms=r['train_ms']))
         if r['train_corpus']!=r['test_corpus']:
-            same=next(q for q in bpes if q['train_variant']==r['train_variant'] and q['k_merges']==r['k_merges'] and q['train_corpus']==q['test_corpus']==r['test_corpus'])
+            same=next((q for q in bpes if q['train_variant']==r['train_variant'] and q['k_merges']==r['k_merges'] and q['train_corpus']==q['test_corpus']==r['test_corpus']), None)
+            if same is None:
+                continue
             delta=int(r['comp_bytes'])/int(r['orig_bytes'])-int(same['comp_bytes'])/int(same['orig_bytes'])
             gaps.append(dict(cross_csv_line=r['csv_line'],same_csv_line=same['csv_line'],variant=r['train_variant'],
                              train=r['train_corpus'],test=r['test_corpus'],K=r['k_merges'],train_prefix_kib=notes['train_prefix_kib'],
@@ -65,7 +70,7 @@ def tables():
 
 def extended_sections():
     """Generate comparisons from CSV rows; explicitly cite raw-text/Phase 3 inputs."""
-    rows = read_csv(SOURCE)
+    rows = require_ok_rows(read_csv(SOURCE))
     for line, row in enumerate(rows, 2):
         row['csv_line'] = line
 

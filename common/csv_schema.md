@@ -10,7 +10,7 @@ Ký hiệu: **[ĐỀ]** = đề bài quy định. **[ĐX]** = đề xuất của
 - UTF-8 không BOM, phân cách dấu phẩy, xuống dòng LF, có dòng header. [ĐX]
 - Số thực dùng dấu chấm. Ô không áp dụng để **trống** (không ghi NA, 0 hay "-"). [ĐX]
 - Mỗi dòng là **một lượt đo** (một file × một codec × một cấu hình). [ĐX]
-- Chỉ ghi dòng khi round-trip đúng. Nếu SHA-256 không khớp thì dừng và sửa lỗi, không ghi số liệu. [ĐX, dựa trên yêu cầu Oracle của đề]
+- `status` bắt buộc theo mục 6 quy định chung; chỉ hàng `ok` được dùng để tổng hợp kết quả. Runner hiện chỉ ghi `ok`; việc tự bắt timeout/crash/oom/wrong sẽ thực hiện riêng.
 
 ## 2. Các cột (đúng thứ tự)
 
@@ -44,12 +44,13 @@ Ký hiệu: **[ĐỀ]** = đề bài quy định. **[ĐX]** = đề xuất của
 | 26 | `output_check` | text | 16 ký tự hex đầu của SHA-256 dữ liệu **sau khi giải nén** (bằng SHA-256 dữ liệu gốc) [ĐỀ] | tất cả |
 | 27 | `roundtrip_ok` | bool | `true` nếu SHA-256 sau giải nén bằng SHA-256 trước khi nén [ĐX] | tất cả |
 | 28 | `notes` | text | Ghi chú tự do (tránh dấu phẩy, hoặc đặt trong ngoặc kép) | tuỳ chọn |
+| 29 | `status` | text | `ok`, `timeout`, `crash`, `oom`, `wrong`; không có giá trị mặc định | tất cả |
 
 ## 3. Ví dụ dòng
 
 ```
-rq,dataset,file,state,size_kib,seed,codec,train_variant,k_merges,train_corpus,test_corpus,orig_bytes,comp_bytes,ratio,ratio_tokens_only,h0_bits,h0_ratio,n_tokens,bytes_per_token,comp_ms,decomp_ms,comp_kibs,decomp_kibs,train_ms,peak_mem_kib,output_check,roundtrip_ok,notes
-2,R1,alice29.txt,shuffled,,1,huffman,,,,,152089,87000,0.572,,4.57,0.571,,,310.2,280.4,478.8,529.7,,2100.5,9f86d081884c7d65,true,
+rq,dataset,file,state,size_kib,seed,codec,train_variant,k_merges,train_corpus,test_corpus,orig_bytes,comp_bytes,ratio,ratio_tokens_only,h0_bits,h0_ratio,n_tokens,bytes_per_token,comp_ms,decomp_ms,comp_kibs,decomp_kibs,train_ms,peak_mem_kib,output_check,roundtrip_ok,notes,status
+2,R1,alice29.txt,shuffled,,1,huffman,,,,,152089,87000,0.572,,4.57,0.571,,,310.2,280.4,478.8,529.7,,2100.5,9f86d081884c7d65,true,,ok
 ```
 
 (Các con số trong ví dụ chỉ để minh họa định dạng, không phải kết quả thật.)
@@ -69,3 +70,13 @@ rq,dataset,file,state,size_kib,seed,codec,train_variant,k_merges,train_corpus,te
 4. Tên file chuẩn cho R1 (đề xuất: `alice29.txt`, `kennedy.xls`, `v1_test_1mib.txt`).
 
 Module `results_schema.py` đi kèm chứa danh sách cột, hàm tính các cột dẫn xuất và hàm ghi dòng có kiểm tra, để cả ba cặp dùng chung.
+
+## 6. Hợp đồng status và migration ngày 2026-10-29
+
+- `ok`: `roundtrip_ok=true`, `output_check` đúng 16 hex thường, có `orig_bytes`, `comp_bytes`, `comp_ms`, `decomp_ms`. Thời gian hữu hạn, không âm; throughput trống cho input rỗng. `train_ms` chỉ có khi áp dụng.
+- `timeout`, `crash`, `oom`: `comp_ms`, `decomp_ms`, `comp_kibs`, `decomp_kibs`, `train_ms`, `roundtrip_ok`, `output_check` đều trống; `notes` bắt buộc ghi nguyên nhân. Kết quả chưa thu được để trống.
+- `wrong`: `roundtrip_ok=false`, `notes` bắt buộc; `output_check` là hash đầu ra sai nếu có, không phải hash kỳ vọng. Các trường thời gian/throughput trống; không dùng hàng này để tính tốc độ.
+- `finalize_row` chỉ suy ra metric cho `ok`; không tự gán status, không xóa số đo lỗi để biến chúng thành dòng hợp lệ. Writer từ chối append nếu header chưa migrate.
+- Bốn CSV chính được thêm `ok` sau khi xác nhận round-trip cũ đúng; mọi ô của 28 cột cũ giữ nguyên chuỗi, kể cả độ chính xác số và notes. Không đo lại, không tự phân loại lại timeout từ thời gian lịch sử.
+- `results/archive/` giữ nguyên schema 28 cột và byte lịch sử. CSV bảng tổng hợp và `rq3/out/train_mem.csv` dùng schema riêng, không thêm status.
+- Audit edge giữ nguyên hash/độ dài gốc. `edge_original_projection` ghi phương pháp `legacy-28-columns-utf8-lf-v1`, thứ tự cột và số hàng gốc. Bỏ cột status, xuất header và 15 hàng gốc bằng CSV UTF-8/LF rồi so SHA-256/2.482 byte gốc; không thay hash lịch sử.

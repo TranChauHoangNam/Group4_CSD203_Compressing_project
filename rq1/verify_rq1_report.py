@@ -1,5 +1,7 @@
 """Verify every numeric cell in RQ1 report draft against results CSV and rq1/out tables."""
 import argparse
+from common.results_schema import require_ok_rows
+
 import csv
 import io
 import math
@@ -234,7 +236,7 @@ def verify(report_path, out_dir=None, csv_path=None):
     raw_rows = []
     if csv_path is not None and Path(csv_path).is_file():
         with Path(csv_path).open(newline='', encoding='utf-8') as stream:
-            raw_rows = list(csv.DictReader(stream))
+            raw_rows = require_ok_rows(list(csv.DictReader(stream)))
 
     # If out_dir CSVs are missing, generate directly from raw_rows
     if len(ref_tables) < len(TABLE_DEFINITIONS) and raw_rows:

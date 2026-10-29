@@ -79,7 +79,7 @@ def main():
                 "h0_bits": h0, "h0_ratio": h0 / 8,
                 "comp_kibs": throughput_kibs(r["orig_bytes"], r["comp_ms"]),
                 "decomp_kibs": throughput_kibs(r["orig_bytes"], r["decomp_ms"]),
-                **r,
+                **r, "status": "ok",
             }
             writer.write(row)
             print(f"{path.name:28s} {cname:8s} ratio={row['ratio']:.4f} "

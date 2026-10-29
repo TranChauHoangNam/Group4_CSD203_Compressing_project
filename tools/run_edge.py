@@ -51,7 +51,7 @@ def main():
                 "h0_bits": h0 if n else None, "h0_ratio": (h0 / 8) if n else None,
                 "comp_kibs": throughput_kibs(n, r["comp_ms"]),
                 "decomp_kibs": throughput_kibs(n, r["decomp_ms"]),
-                **r,
+                **r, "status": "ok",
             }
             writer.write(row)
             print(f"[OK] {cname:8s} {fname:22s} {n} -> {r['comp_bytes']} byte")
