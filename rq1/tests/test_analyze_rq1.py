@@ -11,10 +11,10 @@ def source(tmp_path):
     path = tmp_path/'measurements.csv'
     rows = []
     for seed, value in enumerate((1, 9, 2), 1):
-        row = dict(dataset='C1', size_kib=256, codec='rle', seed=seed)
+        row = dict(status="ok", dataset='C1', size_kib=256, codec='rle', seed=seed)
         row.update({metric: value*(index+1) for index, metric in enumerate(METRICS)})
         rows.append(row)
-    row = dict(dataset='V1', size_kib=256, codec='lzw', seed='')
+    row = dict(status="ok", dataset='V1', size_kib=256, codec='lzw', seed='')
     row.update({metric: 7*(index+1) for index, metric in enumerate(METRICS)})
     rows.append(row)
     with path.open('w', encoding='utf-8', newline='') as stream:

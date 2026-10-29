@@ -24,11 +24,11 @@ def fixture_matrix():
                 audit['models'][f'{a}|{k}|{variant}']=dict(train_ms_runs=[5] if runs==1 else [4,5,6],train_sha256=notes['train_sha256'],merges_sha256=notes['merges_sha256'])
                 for b in CORPORA:
                     row=dict(rq='3',dataset=b,file=f'{b.lower()}_test_1mib.txt',state='original',codec='bpe',train_variant=variant,k_merges=k,train_corpus=a,test_corpus=b,
-                             orig_bytes=8,comp_bytes=37,ratio_tokens_only=.75,n_tokens=4,train_ms=5,comp_ms=2,decomp_ms=3,peak_mem_kib=10,output_check=digest[:16],roundtrip_ok=True,notes=notes_text(notes))
+                             orig_bytes=8,comp_bytes=37,ratio_tokens_only=.75,n_tokens=4,train_ms=5,comp_ms=2,decomp_ms=3,peak_mem_kib=10,output_check=digest[:16],roundtrip_ok=True, status="ok",notes=notes_text(notes))
                     rows.append({c:_fmt(finalize_row(row).get(c)) for c in COLUMNS})
                     audit['rows'][key(row)]=dict(comp_ms_runs=[1,2,3],decomp_ms_runs=[2,3,4],output_sha256=digest)
     for b in CORPORA:
-        row=dict(rq='3',dataset=b,file=f'{b.lower()}_test_1mib.txt',state='original',codec='lzw',test_corpus=b,orig_bytes=8,comp_bytes=20,comp_ms=2,decomp_ms=3,peak_mem_kib=10,output_check=digest[:16],roundtrip_ok=True,notes='mem_test_bytes=8')
+        row=dict(rq='3',dataset=b,file=f'{b.lower()}_test_1mib.txt',state='original',codec='lzw',test_corpus=b,orig_bytes=8,comp_bytes=20,comp_ms=2,decomp_ms=3,peak_mem_kib=10,output_check=digest[:16],roundtrip_ok=True, status="ok",notes='mem_test_bytes=8')
         rows.append({c:_fmt(finalize_row(row).get(c)) for c in COLUMNS})
         audit['rows'][key(row)]=dict(comp_ms_runs=[1,2,3],decomp_ms_runs=[2,3,4])
     return rows,audit,manifest

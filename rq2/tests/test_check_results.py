@@ -22,7 +22,7 @@ def sample_results(tmp_path):
                     rq="2", dataset="R1", file=file, codec=codec, state=state, seed=seed,
                     orig_bytes=6, comp_bytes=comp, h0_bits=1.0,
                     comp_ms=1.0, decomp_ms=1.0, peak_mem_kib=1.0,
-                    output_check=sha16(data), roundtrip_ok=True,
+                    output_check=sha16(data), roundtrip_ok=True, status="ok",
                 ))
     log = tmp_path / "runner.log"
     log.write_text("Số dòng đã ghi: 27; số dòng kỳ vọng: 27\n"

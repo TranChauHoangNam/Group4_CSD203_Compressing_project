@@ -8,6 +8,7 @@ from pathlib import Path
 from statistics import median
 
 from common.results_schema import COLUMNS, validate_row
+from common.edge_provenance import verify_original
 from rq3.run_rq3 import CORPORA, VARIANTS, KS, EDGE_CASES, key, parse_notes
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -39,7 +40,7 @@ def check_rows(rows,audit,manifest):
         for r in rows:
             validate_row(r)
             assert r['rq']=='3' and r['state']=='original' and r['dataset']==r['test_corpus']
-            assert r['roundtrip_ok']=='true'
+            assert r['status']=='ok' and r['roundtrip_ok']=='true'
             source=manifest[r['file']]
             assert int(r['orig_bytes'])==source['bytes']
             assert r['output_check']==source['sha256'][:16]
@@ -126,7 +127,7 @@ def main():
         assert {(r['file'],r['train_variant']) for r in bpes}=={(f,v) for f in EDGE_CASES for v in VARIANTS}
         for r in bpes:
             validate_row(r);data=EDGE_CASES[r['file']]
-            assert r['rq']=='edge' and r['dataset']=='' and r['roundtrip_ok']=='true'
+            assert r['rq']=='edge' and r['dataset']=='' and r['status']=='ok' and r['roundtrip_ok']=='true'
             assert r['output_check']==hashlib.sha256(data).hexdigest()[:16]
             assert int(r['orig_bytes'])==len(data)
             if not data:
@@ -134,10 +135,10 @@ def main():
             if r['file']=='edge_aaabdaaabac.bin':
                 assert r['k_merges']=='3' and r['comp_bytes']=='39' and r['n_tokens']=='5'
         raw=(ROOT/'results/results_edge.csv').read_bytes()
-        assert hashlib.sha256(raw[:audit['edge_original_bytes']]).hexdigest()==audit['edge_original_sha256']
-        checks.append(('18 BPE edge rows; original edge bytes preserved',True,''))
+        verify_original(raw, audit)
+        checks.append(('18 BPE edge rows; original edge evidence preserved',True,''))
     except (AssertionError,KeyError,ValueError) as exc:
-        checks.append(('18 BPE edge rows; original edge bytes preserved',False,str(exc)))
+        checks.append(('18 BPE edge rows; original edge evidence preserved',False,str(exc)))
     try:
         with (ROOT/'rq3/out/train_mem.csv').open(newline='',encoding='utf-8') as f: memory=list(csv.DictReader(f))
         assert len(memory)==6

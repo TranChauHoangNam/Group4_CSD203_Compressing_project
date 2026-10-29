@@ -12,7 +12,7 @@ def test_blank_dataset_only_for_edge(tmp_path, dataset, rq):
     row = {
         "rq": rq, "state": "original", "codec": "bpe",
         "orig_bytes": 0, "comp_bytes": 12,
-        "output_check": sha16(b""), "roundtrip_ok": True,
+        "output_check": sha16(b""), "roundtrip_ok": True, "status": "ok", "comp_ms": 1, "decomp_ms": 1,
     }
     if dataset != "missing":
         row["dataset"] = dataset
@@ -32,5 +32,5 @@ def test_edge_still_rejects_unknown_dataset(tmp_path):
         append_row(str(tmp_path / "results.csv"), {
             "rq": "edge", "dataset": "unknown", "state": "original",
             "codec": "bpe", "orig_bytes": 0, "comp_bytes": 12,
-            "output_check": sha16(b""), "roundtrip_ok": True,
+            "output_check": sha16(b""), "roundtrip_ok": True, "status": "ok", "comp_ms": 1, "decomp_ms": 1,
         })

@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from common.results_schema import validate_row
+from common.results_schema import COLUMNS, validate_row
 
 
 def main():
@@ -14,7 +14,10 @@ def main():
     args = parser.parse_args()
     total = rejected = 0
     with args.csv.open(encoding="utf-8", newline="") as stream:
-        for line, row in enumerate(csv.DictReader(stream), start=2):
+        reader = csv.DictReader(stream)
+        if reader.fieldnames != COLUMNS:
+            raise ValueError("Unexpected edge CSV header")
+        for line, row in enumerate(reader, start=2):
             total += 1
             try:
                 if row.get("rq") != "edge" or row.get("dataset") != "":

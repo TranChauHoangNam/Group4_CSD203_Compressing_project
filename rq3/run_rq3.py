@@ -10,7 +10,8 @@ import time
 import tracemalloc
 
 import lzw
-from common.results_schema import COLUMNS, append_row, sha16
+from common.results_schema import COLUMNS, append_row, sha16, validate_row
+from common.edge_provenance import legacy_prefix, projection_metadata, verify_original
 from rq3 import bpe
 from rq3.phase3_feasibility import load_corpus, protected_hashes
 from rq3.phase3_analyze import fit, predict
@@ -50,7 +51,10 @@ def read_rows(path):
         reader=csv.DictReader(stream)
         if reader.fieldnames != COLUMNS:
             raise ValueError(f"Unexpected CSV header: {path}")
-        return list(reader)
+        rows = list(reader)
+        for row in rows:
+            validate_row(row)
+        return rows
 
 
 def guard(label, seconds):
@@ -97,7 +101,7 @@ def measure(compress, decompress, data, repeats=3):
     if blob!=expected_blob:
         raise ValueError("Traced compressed output differs")
     return dict(orig_bytes=len(data),comp_bytes=len(blob),comp_ms=median(cm),decomp_ms=median(dm),
-                peak_mem_kib=peak,output_check=sha16(restored),roundtrip_ok=True), blob, dict(comp_ms_runs=cm,decomp_ms_runs=dm)
+                peak_mem_kib=peak,output_check=sha16(restored),roundtrip_ok=True,status="ok"), blob, dict(comp_ms_runs=cm,decomp_ms_runs=dm)
 
 
 def train_estimate(corpus,variant,k,prefix):
@@ -160,8 +164,8 @@ def trained_model(audit,corpus,k,variant):
 def run_results(audit):
     RESULTS.parent.mkdir(exist_ok=True)
     existing=read_rows(RESULTS)
-    done={key(r) for r in existing}
-    if len(done)!=len(existing): raise ValueError("Duplicate existing results")
+    done={key(r) for r in existing if r["status"]=="ok"}
+    if len({key(r) for r in existing})!=len(existing): raise ValueError("Duplicate existing results")
     for variant in VARIANTS:
         for corpus in CORPORA:
             for k in KS:
@@ -198,11 +202,15 @@ def run_results(audit):
 def run_edges(audit):
     path=ROOT/"results/results_edge.csv"
     existing=read_rows(path)
-    done={(r["file"],r["train_variant"]) for r in existing if r["codec"]=="bpe"}
+    done={(r["file"],r["train_variant"]) for r in existing if r["codec"]=="bpe" and r["status"]=="ok"}
     if "edge_original_sha256" not in audit:
-        audit["edge_original_sha256"]=digest(path.read_bytes()) if path.exists() else None
-        audit["edge_original_bytes"]=len(path.read_bytes()) if path.exists() else 0
+        original = legacy_prefix(path.read_bytes(), len(existing)) if path.exists() else legacy_prefix((",".join(COLUMNS)+"\n").encode(), 0)
+        audit["edge_original_sha256"] = digest(original)
+        audit["edge_original_bytes"] = len(original)
+        audit["edge_original_projection"] = projection_metadata(len(existing))
         save(audit)
+    if path.exists():
+        verify_original(path.read_bytes(), audit)
     for variant in VARIANTS:
         for name,data in EDGE_CASES.items():
             if (name,variant) in done: continue

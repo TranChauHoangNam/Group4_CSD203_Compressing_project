@@ -12,7 +12,7 @@ EXPECTED_COLUMNS = (
     "rq,dataset,file,state,size_kib,seed,codec,train_variant,k_merges,train_corpus,"
     "test_corpus,orig_bytes,comp_bytes,ratio,ratio_tokens_only,h0_bits,h0_ratio,"
     "n_tokens,bytes_per_token,comp_ms,decomp_ms,comp_kibs,decomp_kibs,train_ms,"
-    "peak_mem_kib,output_check,roundtrip_ok,notes"
+    "peak_mem_kib,output_check,roundtrip_ok,notes,status"
 ).split(",")
 
 
@@ -22,13 +22,13 @@ def sample_row() -> dict[str, Any]:
         "rq": "2", "dataset": "R1", "file": "sample.bin", "state": "original",
         "codec": "huffman", "orig_bytes": 2048, "comp_bytes": 1024,
         "h0_bits": 4.0, "comp_ms": 10.0, "decomp_ms": 5.0,
-        "output_check": sha16(b"abc"), "roundtrip_ok": True, "notes": "mẫu, thử",
+        "output_check": sha16(b"abc"), "roundtrip_ok": True, "status": "ok", "notes": "mẫu, thử",
     }
 
 
 @pytest.mark.parametrize("existing_empty", [False, True])
 def test_append_header_derived_columns_and_width(tmp_path: Path, existing_empty: bool) -> None:
-    """Header chỉ ghi một lần; mỗi dòng đủ 28 cột và đúng giá trị dẫn xuất."""
+    """Header chỉ ghi một lần; mỗi dòng đủ 29 cột và đúng giá trị dẫn xuất."""
     path = tmp_path / "results.csv"
     if existing_empty:
         path.touch()
@@ -48,7 +48,7 @@ def test_append_header_derived_columns_and_width(tmp_path: Path, existing_empty:
         records = list(csv.reader(stream))
     assert records[0] == COLUMNS == EXPECTED_COLUMNS
     assert len(records) == 3
-    assert all(len(record) == 28 for record in records)
+    assert all(len(record) == 29 for record in records)
     for record in records[1:]:
         parsed = dict(zip(COLUMNS, record))
         validate_row(parsed)

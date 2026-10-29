@@ -107,10 +107,10 @@ def test_synthetic_small_dataset(tmp_path):
     src_csv = tmp_path / 'small_results.csv'
     rows = []
     for seed, value in enumerate((1, 9, 2), 1):
-        row = dict(dataset='C1', size_kib=256, codec='rle', seed=seed)
+        row = dict(status="ok", dataset='C1', size_kib=256, codec='rle', seed=seed)
         row.update({metric: value * (idx + 1) for idx, metric in enumerate(METRICS)})
         rows.append(row)
-    row = dict(dataset='V1', size_kib=256, codec='lzw', seed='')
+    row = dict(status="ok", dataset='V1', size_kib=256, codec='lzw', seed='')
     row.update({metric: 7 * (idx + 1) for idx, metric in enumerate(METRICS)})
     rows.append(row)
 

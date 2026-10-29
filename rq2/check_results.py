@@ -30,7 +30,7 @@ def check_results(csv_path: Path, data_dir: Path, seeds: list[int], runner_log: 
            [] if len(rows) == expected else [f"Cần {expected}, nhận {len(rows)}"])
     errors = []
     if header != COLUMNS:
-        errors.append("Header không khớp chính xác 28 cột")
+        errors.append("Header không khớp chính xác 29 cột")
     if not seeds or len(set(seeds)) != len(seeds):
         errors.append("Danh sách seed phải khác rỗng, không trùng")
     expected_keys = {
@@ -61,7 +61,7 @@ def check_results(csv_path: Path, data_dir: Path, seeds: list[int], runner_log: 
             errors.append(f"Dòng {line}: {exc}")
     record(2, "Header, schema và ma trận codec/state/seed", errors)
     errors = [f"Dòng {i}: roundtrip_ok/output_check sai" for i, r in enumerate(rows, 2)
-              if r.get("roundtrip_ok") != "true" or
+              if r.get("status") != "ok" or r.get("roundtrip_ok") != "true" or
               not re.fullmatch(r"[0-9a-f]{16}", r.get("output_check") or "")]
     record(3, "Round-trip true và output_check 16 hex", errors)
 

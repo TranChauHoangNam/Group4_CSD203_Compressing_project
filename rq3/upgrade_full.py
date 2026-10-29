@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 from common.results_schema import COLUMNS
+from common.edge_provenance import verify_original
 from rq3 import bpe
 from rq3.run_rq3 import ROOT, RESULTS, AUDIT, OUT, digest, key, save, read_rows
 from rq3.phase3_feasibility import load_corpus
@@ -61,9 +62,14 @@ def main():
     audit['migration_archive']='results/archive/mixed_scope'
     # BPE edge outputs change under the corrected singleton merge rule.
     edge=ROOT/'results/results_edge.csv'
-    original=edge.read_bytes()[:audit['edge_original_bytes']]
-    assert digest(original)==audit['edge_original_sha256']
-    edge.write_bytes(original)
+    original=verify_original(edge.read_bytes(), audit)
+    if audit.get('edge_original_projection'):
+        original_rows=read_rows(edge)[:audit['edge_original_projection']['row_count']]
+        with edge.open('w',encoding='utf-8',newline='') as stream:
+            writer=csv.DictWriter(stream,fieldnames=COLUMNS,lineterminator='\n')
+            writer.writeheader();writer.writerows(original_rows)
+    else:
+        edge.write_bytes(original)
     with RESULTS.open('w',encoding='utf-8',newline='') as stream:
         writer=csv.DictWriter(stream,fieldnames=COLUMNS)
         writer.writeheader();writer.writerows(kept)
