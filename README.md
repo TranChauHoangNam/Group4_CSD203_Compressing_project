@@ -105,6 +105,49 @@ python gen_synthetic.py --out-dir data/synthetic
 python tools/prepare_wiki.py --data-dir data/wiki
 ```
 
+## Kiểm tra nhanh (<60 s)
+
+Run one submitted row without modifying any result CSV. `--row N` counts the header
+as row 1 (the first data row is 2). These exact commands ran on 2026-10-29:
+
+```powershell
+python tools/verify_row.py results/results_rq1.csv --row 2
+python tools/verify_row.py results_rq2_all.csv --row 2
+python tools/verify_row.py results/results_rq3.csv --row 2
+```
+
+Observed subprocess wall times were **0.126 s**, **0.356 s**, and **2.162 s**, respectively;
+all three returned exit 0. These are actual observations, not runtime guarantees.
+You can instead select with `--rq`, `--file`, `--codec`, `--state`, `--seed`,
+`--dataset`, `--size-kib`, `--train-variant`, `--k-merges`, `--train-corpus`,
+and `--test-corpus`. Multiple matches are listed with row numbers and exit 2.
+
+Each invocation launches one worker with the current Python executable, default GC,
+`perf_counter_ns`, and no tracemalloc pass. RQ1/RQ2 use three timing repeats;
+RQ3 follows `train_runs`/`timing_runs` in notes and trains the full corpus afresh.
+Input loading/generation and hashing are outside algorithm timers, but inside the
+worker's wall timeout. No model cache or prefix substitution is used for RQ3.
+For RQ1 synthetic inputs, the existing generator recreates bytes in memory;
+real corpora must be restored exactly as documented in the Data section.
+`--data-dir` and `--manifest` can select explicitly supplied data/manifest paths.
+
+Exit 0 requires exact `status`, `comp_bytes`, `output_check`, and every applicable
+`comp_ms`, `decomp_ms`, `train_ms` ratio in the inclusive range 0.5–2.0.
+Exit 1 means a verification failure; exit 2 means missing/mismatched data or invalid/ambiguous input.
+`MISSING_DATA` and `DATA_MISMATCH` stop verification before codec execution.
+Edge inputs come from existing case definitions: status/bytes/hash remain mandatory,
+but tiny edge timings are advisory because timer and OS noise dominate their ratios.
+
+The default timeout is 60 seconds and is reported as `status=timeout`, not an uncaught exception.
+For full-corpus naive RQ3, output explains the separately recorded training in
+`final_submission/naive_full_experiment.json`. `--timeout SECONDS` explicitly permits
+a longer confirmation run; it does not change the default or submitted measurements.
+An override above 60 seconds is outside this quick-check time limit.
+
+Six real rows were checked in this revision. Five passed; RQ3 row 8 failed only the
+training-time band: 773.7579 ms / 1657.88 ms = **0.4667x**. Its status, compressed size,
+output hash and compression/decompression timing bands passed. The historical CSV is unchanged.
+
 ## Running the experiments
 
 The following help commands were executed successfully with the environment above:

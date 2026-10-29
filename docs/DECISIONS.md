@@ -7,7 +7,7 @@ no codec, measurement script or recorded result is changed by this document.
 
 ## D-1. Fixed 12-bit BPE codes
 
-**Decision:** Use fixed 12-bit token IDs for every BPE K, matching LZW's budget of 4096 symbols.
+**Bắt buộc theo đề:** Use fixed 12-bit token IDs for every BPE K, matching LZW's budget of 4096 symbols.
 The BPE merge table stores two 12-bit IDs per entry. See [BPE design](../rq3/DESIGN.md) and `rq3/bpe.py`.
 
 **Rationale:** Keep the token-code budget comparable with the 12-bit LZW implementation.
@@ -21,7 +21,7 @@ not a measured variable-width experiment. Published ratios include all container
 
 ## D-2. Pre-tokenization and weighted unique segments
 
-**Decision:** Use the byte regex `re.findall(rb" ?[^\s]+|\s+", data)` in `rq3/bpe.py`.
+**Bắt buộc theo đề:** Use the byte regex `re.findall(rb" ?[^\s]+|\s+", data)` in `rq3/bpe.py`.
 It matches a non-whitespace run with an optional preceding literal ASCII space, or a whitespace run.
 The bytes regex uses ASCII whitespace classes; it does not perform Unicode word segmentation,
 normalization, or whitespace removal. Matches retain the original bytes in order.
@@ -164,3 +164,27 @@ projection removes status and serializes the original header plus 15 rows in
 legacy column order, UTF-8/LF, before checking the original digest. Historical
 source hashes in the audit remain unchanged; report_sources.json is refreshed
 for the new CSV/audit bytes without changing report numbers.
+
+## 2026-10-29: single-row defense verification
+
+Use tools/verify_row.py to replay exactly one submitted CSV row, counting the
+header as row 1. Filters must identify a unique row. No result CSV, data file,
+or model cache is written. Missing data and SHA-256/size mismatches exit 2.
+
+The supervisor uses subprocess.run([sys.executable, ...], timeout=60); an explicit
+--timeout override is available for longer confirmation only. Algorithm timing
+uses perf_counter_ns with millisecond output, default GC and no memory pass.
+The shared measure() retains its existing default clock and memory behavior;
+verification opts into timer_ns=True and with_mem=False. No codec is rewritten.
+
+Compare status, comp_bytes and output_check exactly. Check comp_ms, decomp_ms
+and any recorded train_ms independently against inclusive 0.5x-2.0x bounds.
+RQ3 trains the full recorded corpus afresh with the recorded repetition counts,
+without a prefix or cached merges. Full naive timeout output cites the separate
+naive_full_experiment.json provenance; it does not overwrite historical results.
+Edge correctness checks remain mandatory, but its tiny timings are advisory.
+
+Observed six-row verification: RQ1 rows 2/3, RQ2 rows 2/3 and RQ3 row 2 passed.
+RQ3 row 8 failed only train_ms: 773.7579 / 1657.88 = 0.4667x; its correctness,
+compression and decompression checks passed. Retain this failure as observed;
+do not rerun selectively or change submitted values to obtain PASS.
