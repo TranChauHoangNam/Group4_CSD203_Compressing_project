@@ -117,7 +117,9 @@ def _train_incremental(data, k, use_heap):
         new_id = 256 + len(merges)
         dirty = set()
         # Snapshot affected segments; indexes are updated during replacement.
-        for sid in sorted(inverted[pair]):
+        # Segments are independent; only final counts are published to the heap.
+        # Copy the set because remove_edge mutates the inverted index.
+        for sid in list(inverted[pair]):
             values, prev, nxt, alive, weight = states[sid]
             local = positions[sid]
 
@@ -148,7 +150,10 @@ def _train_incremental(data, k, use_heap):
 
             # Increasing original positions implement D2 left-to-right order.
             # Overlapping entries removed by an earlier replacement are skipped.
-            for left in sorted(local[pair]):
+            pending = list(local[pair])
+            heapq.heapify(pending)
+            while pending:
+                left = heapq.heappop(pending)
                 if not alive[left]:
                     continue
                 right = nxt[left]

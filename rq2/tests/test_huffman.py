@@ -26,6 +26,21 @@ def test_round_trip_sha256(data: bytes) -> None:
     assert output_check(restored) == output_check(data)
 
 
+@pytest.mark.parametrize("data, expected", [
+    (b"", {}),
+    (b"Z" * 9, {90: "0"}),
+    (b"ABCD", {65: "00", 66: "01", 67: "10", 68: "11"}),
+    (b"AAAAABBC", {65: "0", 66: "10", 67: "11"}),
+    (bytes([255]) * 10 + bytes([0]) * 3 + bytes([128]),
+     {255: "0", 0: "10", 128: "11"}),
+])
+def test_canonical_histogram_order(data, expected):
+    from rq2.huffman import build_code_lengths, generate_canonical_codes
+
+    codes = generate_canonical_codes(build_code_lengths(data))
+    assert list(codes.items()) == list(expected.items())
+
+
 def test_output_check() -> None:
     """Tiện ích trả đúng 16 ký tự hex đầu của SHA-256 đã biết."""
     assert output_check(b"abc") == "ba7816bf8f01cfea"
