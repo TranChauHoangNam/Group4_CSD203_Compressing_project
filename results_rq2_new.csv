@@ -1,0 +1,16 @@
+rq,dataset,file,state,size_kib,seed,codec,train_variant,k_merges,train_corpus,test_corpus,orig_bytes,comp_bytes,ratio,ratio_tokens_only,h0_bits,h0_ratio,n_tokens,bytes_per_token,comp_ms,decomp_ms,comp_kibs,decomp_kibs,train_ms,peak_mem_kib,output_check,roundtrip_ok,notes
+2,R1,alice29.txt,original,,,huffman,,,,,152089,87956,0.578319,,4.56768,0.57096,,,20.2512,65.1098,7334.1,2281.14,,5752.79,7467306ee0feed49,true,ratio_no_header=0.576557
+2,R1,alice29.txt,original,,,rle,,,,,152089,289864,1.90588,,4.56768,0.57096,,,17.812,21.5126,8338.45,6904.07,,585.266,7467306ee0feed49,true,
+2,R1,alice29.txt,original,,,lzw,,,,,152089,72330,0.475577,,4.56768,0.57096,,,15.6441,9.5388,9493.96,15570.6,,552.84,7467306ee0feed49,true,
+2,R1,alice29.txt,runs,,,huffman,,,,,152089,87956,0.578319,,4.56768,0.57096,,,21.5952,61.3035,6877.66,2422.77,,5752.79,a774f0e4bba6da80,true,ratio_no_header=0.576557
+2,R1,alice29.txt,runs,,,rle,,,,,152089,1288,0.00846873,,4.56768,0.57096,,,5.3342,0.2445,27843.8,607462,,311.476,a774f0e4bba6da80,true,
+2,R1,alice29.txt,runs,,,lzw,,,,,152089,4965,0.0326454,,4.56768,0.57096,,,12.0395,1.1491,12336.4,129253,,610.663,a774f0e4bba6da80,true,
+2,R1,alice29.txt,shuffled,,1,huffman,,,,,152089,87956,0.578319,,4.56768,0.57096,,,21.5441,67.174,6893.97,2211.04,,5752.79,5bfd6bd6ec975a9d,true,ratio_no_header=0.576557
+2,R1,alice29.txt,shuffled,,1,rle,,,,,152089,283300,1.86273,,4.56768,0.57096,,,18.522,21.7513,8018.81,6828.3,,591.701,5bfd6bd6ec975a9d,true,
+2,R1,alice29.txt,shuffled,,1,lzw,,,,,152089,104775,0.688906,,4.56768,0.57096,,,16.9589,14.0362,8757.9,10581.5,,590.885,5bfd6bd6ec975a9d,true,
+2,R1,alice29.txt,shuffled,,2,huffman,,,,,152089,87956,0.578319,,4.56768,0.57096,,,20.9741,65.8677,7081.32,2254.89,,5752.79,089d6931216ffaca,true,ratio_no_header=0.576557
+2,R1,alice29.txt,shuffled,,2,rle,,,,,152089,283282,1.86261,,4.56768,0.57096,,,18.2523,22.2093,8137.3,6687.49,,591.607,089d6931216ffaca,true,
+2,R1,alice29.txt,shuffled,,2,lzw,,,,,152089,104295,0.68575,,4.56768,0.57096,,,18.8596,14.606,7875.27,10168.7,,590.416,089d6931216ffaca,true,
+2,R1,alice29.txt,shuffled,,3,huffman,,,,,152089,87956,0.578319,,4.56768,0.57096,,,22.1383,71.5291,6708.93,2076.42,,5752.79,9fd9d2cc24506a5a,true,ratio_no_header=0.576557
+2,R1,alice29.txt,shuffled,,3,rle,,,,,152089,283292,1.86267,,4.56768,0.57096,,,18.4573,22.0021,8046.92,6750.47,,591.617,9fd9d2cc24506a5a,true,
+2,R1,alice29.txt,shuffled,,3,lzw,,,,,152089,104120,0.684599,,4.56768,0.57096,,,18.3801,14.2335,8080.72,10434.8,,590.245,9fd9d2cc24506a5a,true,
