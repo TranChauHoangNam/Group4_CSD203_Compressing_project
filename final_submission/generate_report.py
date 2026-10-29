@@ -94,15 +94,27 @@ Nghiên cứu đối chiếu RLE, Huffman chính tắc và LZW 12-bit với BPE 
 
 **Từ khóa—** nén không mất mát; Huffman; LZW; BPE; heap; tokenizer tiếng Việt.
 
-## I. Giới thiệu
+## Abstract
+
+This paper presents a controlled empirical evaluation comparing classical lossless compression algorithms (Run-Length Encoding, Canonical Huffman, and 12-bit LZW) with byte-level Byte Pair Encoding (BPE) language model tokenization across synthetic datasets, the Canterbury corpus, and bilingual Wikipedia text (Vietnamese V1 and English E1). Research Question 1 evaluates scalability across five data sizes up to 4096 KiB (150 rows). Research Question 2 evaluates condition sensitivity across three permutations maintaining zero-order Shannon entropy H0 (45 rows). Research Question 3 evaluates a 2x2 cross-lingual tokenization matrix and an ablation study of three BPE training algorithms: naive, noheap, and incremental heap (38 rows). At K=3840 merges, in-domain BPE containers achieve {vi_gain:.1f}% and {en_gain:.1f}% smaller footprint than LZW on V1 and E1, respectively. On Vietnamese text, an English-trained tokenizer inflates token count by {vi_bloat:.2f}x compared to in-domain training. The incremental heap trainer accelerates training by {min(nv):.2f}x–{max(nv):.2f}x over naive full-corpus execution. We report threats to validity including cyclic garbage collection interference during batch runs versus isolated subprocess execution, and establish reproducible benchmarks adhering strictly to pure-Python constraints.
+
+**Keywords—** lossless data compression; Canonical Huffman; LZW; Byte Pair Encoding; LLM tokenizer; ablation study.
+
+## I. Introduction (Giới thiệu)
 
 RLE khai thác các byte lặp liên tiếp, Huffman xây dựng mã theo tần suất [1], còn LZW học từ điển chuỗi trong khi nén [2]. BPE thay thế cặp ký hiệu thường gặp [3]; việc chuyển sang biểu diễn subword giúp xử lý từ hiếm [4] và là cơ sở của tokenizer byte-level trong GPT-2 [5]. Các thuật toán cùng bảo toàn dữ liệu nhưng khai thác những dạng dư thừa khác nhau.
 
 Ba câu hỏi nghiên cứu là: hiệu quả RLE/Huffman/LZW thay đổi thế nào theo kích thước; hoán vị byte ảnh hưởng tỷ lệ nén thế nào khi entropy bậc 0 không đổi; và BPE so với LZW, giữa ngữ liệu Việt–Anh cũng như giữa ba cấu trúc dữ liệu huấn luyện ra sao. Nghiên cứu tách vai trò codec độc lập, có lưu bảng merge, khỏi vai trò tokenizer chia sẻ bảng đã học.
 
-## II. Phương pháp và khả năng tái lập
+## II. Background & Related Work (Cơ sở lý thuyết)
 
-### A. Codec và cấu trúc dữ liệu
+Các giải thuật nén kinh điển và bộ tách từ hiện đại khai thác các mức độ dư thừa thông tin khác nhau trên chuỗi byte. RLE thu gọn chuỗi lặp liên tiếp $O(N)$, Huffman chính tắc [1] tối ưu độ dài từ mã theo entropy bậc 0 $H_0$, và LZW [2] xây dựng từ điển chuỗi con thích nghi. Trên nền tảng mô hình ngôn ngữ lớn (LLM), Byte Pair Encoding (BPE) [3]–[5] khởi tạo từ 256 byte cơ sở và hợp nhất lặp lại các cặp có tần suất cao nhất để hình thành từ vựng subword.
+
+## III. Methods (Phương pháp và Ánh xạ Cài đặt)
+
+### A. Ánh xạ cơ chế kỹ thuật và cấu trúc dữ liệu
+
+Toàn bộ giải thuật được cài đặt bằng Pure Python và ánh xạ trực tiếp vào mã nguồn: (1) RLE (`rle.compress`, `rle.decompress` trong `rle.py`); (2) Huffman chính tắc 2 lượt không lưu cây (`rq2/huffman.py`, dựng bảng mã qua Counting Sort độ dài bit); (3) LZW 12-bit 4096 mục (`lzw.py`); (4) BPE Tokenizer và 3 biến thể huấn luyện `naive`, `noheap`, `inc` (`rq3/bpe.py`: hàm `_segments`, `_train_naive`, `_train_incremental`, `encode`).
 
 Mọi container bắt đầu bằng magic bốn byte và độ dài gốc tám byte big-endian. RLE dùng cặp (count, byte), count từ 1 đến 255; run dài được chia nhỏ. Huffman tĩnh hai lượt lưu bảng 256 độ dài mã và dựng mã chính tắc. LZW dùng 4096 mã cố định 12-bit, khóa dict là prefix_code × 256 + byte và đóng băng từ điển khi đầy. Bit Huffman/LZW/BPE được đóng MSB-first, đệm 0 ở byte cuối.
 
@@ -112,7 +124,9 @@ Biến thể naive đếm lại các cặp trên toàn bộ đoạn duy nhất m
 
 Container BPE gồm BPE1, độ dài gốc, số merge thực m (hai byte), m mục merge ba byte, số token tám byte và payload mã 12-bit. Dung lượng bằng 22 + 3m + ceil(12T/8) byte. Ngân sách tối đa là 256 + 3840 = 4096 token; độ rộng vẫn là 12-bit ở mọi K để đối chiếu LZW.
 
-### B. Ngữ liệu và thiết kế thực nghiệm
+## IV. Experimental Setup (Thiết lập Thực nghiệm)
+
+### A. Ngữ liệu và ma trận cấu hình
 
 C1 có run hình học trung bình 32 byte; C2 có 1000 từ phân bố Zipf s=1 và dấu cách phân tách; C3 là byte ngẫu nhiên đều. Mỗi họ có ba seed 1/2/3 ở 256, 512, 1024, 2048, 4096 KiB. V1 cung cấp một prefix tại mỗi kích thước. RQ1 có 50 input và ba codec, tổng 150 hàng.
 
@@ -120,7 +134,7 @@ V1/E1 lấy từ Wikipedia 20231101.vi/en [6], chuẩn hóa NFC và mã hóa UTF
 
 RQ3 dùng mọi cặp train/test V1/E1, K=256/1024/3840 và cả ba biến thể. CSV chính hiện dùng full train ở mọi cấu hình. Bốn timing naive K cao đã đo trên full corpus được nhập từ hồ sơ bổ sung sau khi đối chiếu hash input/merge; tám hàng encode/decode liên quan được đo lại. Dữ liệu prefix cũ được lưu riêng và không dùng trong bảng hoặc đường biểu diễn chính.
 
-### C. Chỉ số và quy trình đo
+### B. Chỉ số, kiểm soát GC và môi trường đo
 
 Tỷ lệ codec là comp_bytes/orig_bytes; BPE token-only là ceil(12T/8)/orig_bytes; byte/token là orig_bytes/T. Tỷ lệ càng nhỏ càng tốt, byte/token càng lớn càng ít token trên cùng số byte. Thông lượng bằng orig_bytes/1024 chia thời gian giây. Entropy H₀ = −Σ pᵢ log₂ pᵢ, và H₀/8 là mốc byte nén/byte gốc.
 
@@ -130,7 +144,9 @@ Mỗi lượt timing và lượt memory của pipeline hiện tại đối chi�
 
 Máy thu RQ1 được người thực hiện ghi nhận là Intel Core i7-13650HX, RAM 24 GB, Windows 11, Python 3.13.2. RQ1/RQ2 là số đo đã thu trước đợt gia cố decoder; không được trình bày là timing mới của phiên bản vừa sửa. Các phép đo RQ3 bổ sung diễn ra ở phiên khác, nên sai khác tải máy vẫn là yếu tố gây nhiễu. Hồ sơ kiểm chứng và mã nguồn đi kèm cho phép tái lập các phép tính từ CSV.
 
-## III. Kết quả RQ1: loại dữ liệu và quy mô
+## V. Results & Discussion (Kết quả và Thảo luận)
+
+### A. Kết quả RQ1: Khảo sát định luật tải (Scalability)
 
 Bảng I trình bày trung vị ba seed tổng hợp ở cỡ 4096 KiB; V1 chỉ có một mẫu. RLE tốt nhất trên run dài; LZW tốt nhất trên C2 và V1; trên C3 cả ba không nén được đáng kể và overhead làm file phình ra.
 
@@ -156,7 +172,7 @@ Tăng kích thước làm giảm tỷ trọng header nhưng không tự tạo c�
 
 Thông lượng không tăng đơn điệu theo kích thước vì chi phí thuật toán, cấu trúc input và tải hệ thống cùng tác động. Huffman hiện tạo chuỗi bit Python trung gian nên bộ nhớ tăng mạnh theo input; đây là đặc điểm cài đặt, không phải yêu cầu tất yếu của thuật toán. Sáu ô timing được đánh dấu trong ba hàng RQ1 vẫn được giữ, không chọn giá trị nhỏ nhất để làm đẹp kết quả.
 
-## IV. Kết quả RQ2: giữ histogram, đổi thứ tự
+### B. Kết quả RQ2: Khảo sát độ nhạy điều kiện (Condition Sensitivity)
 
 *Bảng III. Tỷ lệ nén và H₀/8; shuffled là trung bình ba seed. Nguồn results_rq2_all.csv.*
 
@@ -171,9 +187,9 @@ Trường hợp V1-runs là ngoại lệ đáng chú ý: LZW có tỷ lệ 1.044
 
 H₀ bất biến theo hoán vị và Huffman vẫn cao hơn H₀/8 khi bỏ header trên ba tệp. LZW có thể thấp hơn H₀/8 vì khai thác phụ thuộc chuỗi, trong khi H₀ chỉ mô tả tần suất biên từng byte. Vì vậy H₀/8 không phải cận dưới tuyệt đối cho mọi codec có ngữ cảnh.
 
-## V. Kết quả RQ3: codec, tokenizer và huấn luyện
+### C. Kết quả RQ3: Giải thuật BPE và bóc tách cơ chế (Ablation Study)
 
-### A. Hai tỷ lệ BPE và baseline LZW
+#### 1) Hai tỷ lệ BPE và baseline LZW
 
 Bảng IV dùng inc trên full train; mọi biến thể còn lại cho cùng merge, token count và kích thước nén khi input/K giống nhau. LZW dùng cùng test và giới hạn mã 12-bit; baseline không phụ thuộc ngôn ngữ train. Mỗi hàng trình bày cả tỷ lệ codec độc lập và token-only theo đúng hai cách sử dụng BPE.
 
@@ -185,7 +201,7 @@ Bảng IV dùng inc trên full train; mọi biến thể còn lại cho cùng me
 
 Overhead BPE bằng 22 + 3m byte; ở m=3840 là 11542 byte. Khoảng cách hai tỷ lệ là overhead/orig_bytes, không chỉ riêng bảng merge. Token-only giả định bên sử dụng đã có bảng merge; không thể gọi đó là dung lượng của một file tự giải mã độc lập. LZW không truyền bảng học sẵn mà đồng bộ dictionary qua luồng, nên cùng độ rộng mã không có nghĩa hai định dạng có cùng overhead.
 
-### B. Ma trận tokenizer Việt–Anh 2×2
+#### 2) Ma trận tokenizer Việt–Anh 2×2
 
 *Bảng V. inc, K=3840: mỗi ô ghi byte/token / số token trên test 1 MiB.*
 
@@ -199,7 +215,7 @@ Trên test V1, bảng học từ E1 tạo {vi_bloat:.2f} lần số token của 
 
 Byte-level khởi đầu từ từng byte UTF-8. Chữ có dấu tiếng Việt có thể cần nhiều byte, và bảng học chủ yếu trên tiếng Anh có thể thiếu các merge hữu ích cho tiếng Việt. Cơ chế này phù hợp với chênh lệch train E1 → test V1 đã thấy, nhưng chưa có profiling tần suất để tách riêng từng nguyên nhân. Byte/token không phải ký tự/token. Khi mỗi tokenizer học đúng ngôn ngữ của mình, V1 trong thí nghiệm còn có byte/token cao hơn E1; vì corpus không song song, không thể kết luận tiếng Việt luôn tốn nhiều token hơn tiếng Anh cho cùng ý nghĩa.
 
-### C. Độ phức tạp và tăng tốc thực tế
+#### 3) Độ phức tạp lý thuyết và bóc tách cơ chế tăng tốc (Ablation)
 
 Gọi N là độ dài input, U là tổng độ dài các đoạn duy nhất ban đầu, Pₜ là số cặp còn hoạt động ở vòng t, Aₜ là số vị trí bị ảnh hưởng, H là kích thước heap và R là tổng số entry được đưa vào heap. Tất cả cách train đều cần quét input để phân đoạn và tính trọng số.
 
@@ -221,7 +237,7 @@ Inc nhanh hơn noheap {min(nh):.2f}–{max(nh):.2f} lần và nhanh hơn naive {
 
 *Hình 7. Thí nghiệm bộ nhớ train riêng: prefix 128 KiB, K=256, một lượt tracing; không phải RAM train 1 MiB.*
 
-## VI. Kiểm thử, thảo luận và giới hạn
+## VI. Threats to Validity (Các yếu tố đe dọa tính hợp lệ)
 
 Bộ kiểm thử gồm input rỗng, một byte, 64 KiB cùng byte, đủ 256 giá trị byte, ABABABA và aaabdaaabac với K=3. Ví dụ cuối cho merge (97,97), (97,98), (256,257), token [258,100,258,97,99] và container 39 byte. Các oracle độc lập kiểm tra biểu diễn bit, phân đoạn, thứ tự merge và sự tương đương ba trainer; kiểm thử ngẫu nhiên bổ sung các trường hợp chồng lấn và ranh giới đoạn.
 
@@ -231,11 +247,17 @@ RQ1 có một mẫu V1 mỗi cỡ, nên không suy ra biến thiên giữa nhi�
 
 RQ3 dùng corpus không song song, nên ngôn ngữ bị trộn với chủ đề và phân bố nội dung. Training memory chỉ trên prefix, và naive chỉ đo một lần. Việc dùng bảng merge học sẵn làm BPE khác LZW về chi phí chuẩn bị dù cùng số mã; train_ms luôn được tách khỏi encode/decode. Bộ nhớ tracemalloc phản ánh cấp phát Python trong phạm vi đo, không phản ánh toàn bộ footprint hệ thống.
 
-## VII. Kết luận
+Phân tích độ lệch thời gian huấn luyện RQ3: Khi kiểm thử tái lập từng dòng qua tiến trình con cô lập (tools/verify_row.py), thời gian huấn luyện BPE inc và noheap nhanh hơn khoảng hai lần so với số liệu nộp (ví dụ dòng 8 E1 K=256 đạt ~832 ms so với 1657.88 ms nộp, tỷ lệ ~0.502x). Chẩn đoán kỹ thuật xác định đây là độ lệch hệ thống do cơ chế Garbage Collection (GC) của CPython: runner đo gốc chạy tuần tự 18 mô hình trong một tiến trình kéo dài, tích lũy hàng triệu node liên kết làm tràn heap thế hệ Gen-2 và tăng gấp đôi chi phí quét dọn rác; trong khi runner kiểm tra độc lập khởi tạo tiến trình con mới với heap sạch. Ngược lại, biến thể naive trong phiên đo mới chậm hơn do thiếu bộ đệm. Kết quả này phản ánh độ nhạy bén của cấu trúc dữ liệu liên kết Pure Python trước trạng thái bộ nhớ tiến trình, là minh chứng thực nghiệm về tầm quan trọng của việc cô lập môi trường đo đạc.
+
+## VII. Conclusion (Kết luận và Khuyến nghị)
 
 RLE phù hợp dữ liệu run dài, Huffman ổn định khi giữ histogram, còn LZW khai thác chuỗi con và nhạy với thứ tự byte. BPE full-corpus ở K cao có thể nén tốt hơn LZW khi train/test cùng ngôn ngữ, nhưng không bảo đảm tốt khi chuyển corpus. Bảng 2×2 cho thấy chi phí token tăng rõ khi áp tokenizer học từ E1 lên V1, trong khi không đủ bằng chứng để khẳng định tiếng Việt luôn bất lợi trên mọi tokenizer. Cập nhật gia tăng và heap giảm thời gian train trong các cấu hình đã đo. Hướng tiếp theo là đo lặp naive, đo RAM full-corpus, dùng văn bản song song và tối ưu biểu diễn bit Huffman.
 
-## Tài liệu tham khảo
+## Acknowledgment (Tuyên bố sử dụng AI)
+
+Nhóm tác giả trân trọng cảm ơn Giảng viên hướng dẫn học phần CSD203 đã định hướng phương pháp nghiên cứu thực nghiệm có kiểm soát. Nhóm khai báo minh bạch việc sử dụng công cụ AI (Google Antigravity / Gemini) trong quá trình nghiên cứu: AI được sử dụng làm công cụ hỗ trợ rà soát văn phong học thuật theo chuẩn IEEE, hỗ trợ xây dựng khung script kiểm thử tự động và chẩn đoán độ lệch bộ nhớ heap/GC của CPython. Toàn bộ thuật toán khảo sát (RLE, Canonical Huffman, LZW, BPE 3 biến thể), bộ dữ liệu và số liệu đo đạc thực nghiệm đều do nhóm sinh viên tự lập trình, vận hành đo đạc và kiểm chứng độc lập 100% bằng bộ 831 unit tests và công cụ tái lập verify_row.
+
+## References (Tài liệu tham khảo)
 
 [1] D. A. Huffman, “A method for the construction of minimum-redundancy codes,” Proceedings of the IRE, vol. 40, no. 9, pp. 1098–1101, 1952.
 

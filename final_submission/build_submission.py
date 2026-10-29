@@ -243,21 +243,21 @@ def build():
 
     # Produce a print stylesheet twin of the same final Markdown for Edge PDF export.
     html_parts = ["""<!doctype html><html lang=\"vi\"><head><meta charset=\"utf-8\"><style>
-@page { size: Letter; margin: 0.62in 0.68in; }
-body { font: 10pt/1.15 'Times New Roman',serif; color:#000; column-count:2; column-gap:0.25in; }
-h1 { font-size:18pt; text-align:center; color:#000; margin:10pt 0 12pt; column-span:all; }
-h2 { font-size:10pt; color:#000; margin:12pt 0 6pt; page-break-after:avoid; }
-h3 { font-size:10pt; color:#000; margin:10pt 0 5pt; page-break-after:avoid; }
-h4 { font-size:10pt; margin:9pt 0 4pt; page-break-after:avoid; }
-p { margin:4pt 0; text-align:justify; orphans:2; widows:2; }
-table { border-collapse:collapse; width:100%; margin:7pt 0; font-size:8pt; page-break-inside:avoid; column-span:all; }
-th,td { border:0.5pt solid #aab4bd; padding:3pt 4pt; vertical-align:middle; }
+@page { size: Letter; margin: 0.5in 0.55in; }
+body { font: 8.8pt/1.12 'Times New Roman',serif; color:#000; column-count:2; column-gap:0.2in; }
+h1 { font-size:14pt; text-align:center; color:#000; margin:4pt 0 4pt; column-span:all; }
+h2 { font-size:9.5pt; color:#000; margin:6pt 0 3pt; break-after:avoid; }
+h3 { font-size:9pt; color:#000; margin:5pt 0 2pt; break-after:avoid; }
+h4 { font-size:8.8pt; margin:4pt 0 2pt; break-after:avoid; }
+p { margin:2.5pt 0; text-align:justify; orphans:2; widows:2; }
+table { border-collapse:collapse; width:100%; margin:4pt 0; font-size:7pt; break-inside:avoid; }
+th,td { border:0.5pt solid #aab4bd; padding:1.5pt 2.5pt; vertical-align:middle; }
 th { background:#eee; color:black; }
-img { display:block; width:100%; max-width:100%; max-height:5.5in; object-fit:contain; margin:8pt auto 2pt; page-break-inside:avoid; column-span:all; }
-.caption { text-align:center; font-size:8.5pt; font-style:italic; margin:2pt 0 7pt; column-span:all; }
-.author { text-align:center; column-span:all; }
-ul,ol { margin:4pt 0; padding-left:22pt; } li { margin:3pt 0; }
-code { font-family:Consolas,monospace; font-size:9pt; }
+img { display:block; width:100%; max-width:100%; max-height:1.65in; object-fit:contain; margin:3pt auto 1pt; break-inside:avoid; }
+.caption { text-align:center; font-size:7.8pt; font-style:italic; margin:1pt 0 4pt; break-inside:avoid; }
+.author { text-align:center; margin:1.5pt 0; font-size:8.8pt; column-span:all; }
+ul,ol { margin:2.5pt 0; padding-left:16pt; } li { margin:1.5pt 0; }
+code { font-family:Consolas,monospace; font-size:8pt; }
 @media print { a { color:inherit; text-decoration:none; } }
 </style></head><body>"""]
     lines = text.splitlines()

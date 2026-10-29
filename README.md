@@ -14,7 +14,12 @@ rq2/              Huffman, entropy, byte reordering, RQ2 runner, tests and repor
 rq3/              BPE variants, RQ3 runner, tests, analysis and report
 tools/           Pair 1 measurement, edge-case and Wikipedia preparation tools
 docs/            Data manifests and Pair 1/2 handoff notes
-results/         RQ1, RQ3 and shared edge-case CSVs
+paper/           Official IEEE Conference report (.pdf, .docx, .md)
+src/             Algorithm source code organized by pair (pair1, pair2, pair3)
+tests/           Consolidated unit, edge-case and Oracle test suites
+bench/           Benchmark runners, verification tools and plotting scripts
+results/         RQ1, RQ3 and shared edge-case CSVs (with raw/ and figures/ bundles)
+PHAN_CONG.md     Team roster, pair programming roles, module ownership and PR log
 rle.py           RLE codec
 lzw.py           LZW codec
 huffman.py       Shim exposing rq2.huffman.compress/decompress
