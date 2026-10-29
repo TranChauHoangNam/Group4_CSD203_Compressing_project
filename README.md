@@ -30,6 +30,7 @@ RQ2 results are in `results_rq2_all.csv` at the root. Component documentation:
 
 Verified environment: Python **3.13.2**, pytest **9.1.1**, matplotlib **3.11.1**.
 The codecs use the standard library. pytest runs the tests; matplotlib renders plots.
+Pure Python: thuật toán không dùng sorted/.sort; thư viện chỉ dùng làm Oracle trong tests
 The optional `datasets` package is needed for Wikipedia downloads and is **not installed in the audited environment**.
 
 Installation commands below are **not verified in this documentation update**; no packages were installed or upgraded:

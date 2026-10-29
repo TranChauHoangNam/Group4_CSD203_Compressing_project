@@ -82,8 +82,12 @@ def build_code_lengths(data: bytes) -> list[int]:
 def generate_canonical_codes(lengths: list[int]) -> dict[int, str]:
     """Từ mảng độ dài mã (256 byte), dựng lại bảng mã chính tắc (Canonical Huffman Codes)."""
     # Sắp xếp các ký tự theo (độ dài mã tăng dần, sau đó theo giá trị ký tự tăng dần)
-    symbols = [(i, lengths[i]) for i in range(256) if lengths[i] > 0]
-    symbols.sort(key=lambda x: (x[1], x[0]))
+    buckets = [[] for _ in range(max(lengths[:256], default=0) + 1)]
+    for symbol in range(256):
+        if lengths[symbol] > 0:
+            buckets[lengths[symbol]].append(symbol)
+    symbols = [(symbol, length) for length in range(1, len(buckets))
+               for symbol in buckets[length]]
 
     codes = {}
     current_code = 0
